@@ -84,9 +84,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
 
-      # Local LLM service
-      # The Spring Boot backend can use this URL to call Ollama
-      OLLAMA_BASE_URL: http://ollama:11434
+      # Internal URL used by the backend to call the local LLM service.
+      OLLAMA_BASE_URL: http://local-llm:11434
 
       # MinIO internal endpoint
       MINIO_ENDPOINT: http://minio:9000
@@ -100,11 +99,16 @@ services:
     depends_on:
       database:
         condition: service_healthy
-      ollama:
+      local-llm:
         condition: service_started
       minio:
         condition: service_started
 
+    # Local-only port for backend development and debugging.
+    # Production traffic should still go through Traefik.
+    ports:
+      - "127.0.0.1:8080:8080"
+      
     # No public backend port is required.
     # Traefik reaches backend through the Docker network.
     labels:
@@ -129,12 +133,22 @@ services:
 
     container_name: quadgpt-frontend
 
-    # Frontend is accessed through Traefik
-    # No direct public port is required
+    # Local-only port for frontend development.
+    # Keeps compatibility with the team's existing localhost:3000 workflow.
+    # Production traffic should still go through Traefik.
+    ports:
+      - "127.0.0.1:3000:80"
+
+    # Frontend can be accessed directly on localhost:3000 for development.
+    # Normal application traffic should still go through Traefik.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=web"
+
+      # Frontend is the catch-all route, so it must have lower priority.
+      - "traefik.http.routers.frontend.priority=1"
+
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
     networks:
@@ -206,19 +220,18 @@ services:
 
 
   # =========================================================
-  # Ollama
-  # Local open-weight LLM inference service
+  # Local LLM service
+  # Runs open-weight models locally through Ollama.
   # =========================================================
-  ollama:
+  local-llm:
     image: ollama/ollama:latest
-    container_name: quadgpt-ollama
+    container_name: quadgpt-local-llm
 
-    # Downloaded models persist between container recreations
+    # Persist downloaded models between container recreations.
     volumes:
       - ollama-data:/root/.ollama
 
-    # Ollama is accessible only from containers in app-network
-    # Port 11434 is intentionally not exposed publicly
+    # Only accessible inside the internal Docker network.
     networks:
       - app-network
 

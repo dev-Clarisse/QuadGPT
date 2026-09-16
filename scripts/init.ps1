@@ -10,4 +10,4 @@ docker compose up -d --build
 Start-Sleep -Seconds 5
 
 # Download the default local LLM model used for development
-docker exec quadgpt-ollama ollama pull qwen2.5:1.5b
+docker exec quadgpt-local-llm ollama pull qwen2.5:1.5b
