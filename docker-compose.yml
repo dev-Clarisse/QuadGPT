@@ -1,82 +1,254 @@
-version: "3.9"
-
 services:
-  # --- Reverse proxy : route le trafic vers le bon service selon l'URL ---
+
+  # =========================================================
+  # Traefik reverse proxy
+  # Routes external HTTP traffic to the frontend and backend.
+  # =========================================================
   traefik:
-    image: traefik:v3.1
+    # Traefik 3.6 is used for compatibility with recent Docker APIs.
+    # The previous v3.1 image could not read Docker provider information
+    # correctly in the current Docker Desktop environment.
+    image: traefik:v3.6.16
+    container_name: quadgpt-traefik
+
     command:
+      # Enable Docker service discovery.
+      # Traefik reads container labels and dynamically creates routes.
       - "--providers.docker=true"
+
+      # Explicit Docker socket endpoint used by the Docker provider.
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+
+      # Containers are NOT exposed automatically.
+      # Only services with traefik.enable=true can receive external traffic.
       - "--providers.docker.exposedbydefault=false"
+
+      # HTTP entry point listening on port 80.
       - "--entrypoints.web.address=:80"
+
     ports:
+      # Traefik is currently the only application service exposed on port 80.
       - "80:80"
+
     volumes:
+      # Read-only Docker socket access is required for container discovery.
+      # Read-only mode reduces the privileges granted to Traefik.
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
     networks:
+      # Traefik must share the same internal network as frontend/backend
+      # in order to forward requests to them.
       - app-network
 
+    # Automatically restart after crashes or host reboot,
+    # unless the container was manually stopped.
+    restart: unless-stopped
 
-  # pour voir la base de donnée dans le web    
 
+  # =========================================================
+  # Adminer
+  # Local database administration interface
+  # =========================================================
   adminer:
-    image: adminer
+    image: adminer:latest
+    container_name: quadgpt-adminer
+
+    # Accessible only from the local machine
+    # Do not expose Adminer publicly in production
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
+
     networks:
       - app-network
-    restart: unless-stopped    
 
-  # --- Backend Spring Boot ---
+    depends_on:
+      database:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # =========================================================
+  # Backend - Spring Boot
+  # =========================================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+
+    container_name: quadgpt-backend
+
     environment:
+      # PostgreSQL connection
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      # Internal URL used by the backend to call the local LLM service.
+      OLLAMA_BASE_URL: http://local-llm:11434
+
+      # MinIO internal endpoint
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+
+     
+
+    # Wait until PostgreSQL is actually ready
     depends_on:
-      - database
+      database:
+        condition: service_healthy
+      local-llm:
+        condition: service_started
+      minio:
+        condition: service_started
+
+    # Local-only port for backend development and debugging.
+    # Production traffic should still go through Traefik.
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+      
+    # No public backend port is required.
+    # Traefik reaches backend through the Docker network.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
+
     networks:
       - app-network
+
     restart: unless-stopped
 
-  # --- Frontend React (build statique servi par Nginx) ---
+
+  # =========================================================
+  # Frontend - React + Nginx
+  # =========================================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+
+    container_name: quadgpt-frontend
+
+    # Local-only port for frontend development.
+    # Keeps compatibility with the team's existing localhost:3000 workflow.
+    # Production traffic should still go through Traefik.
     ports:
-      - "3000:80"  
+      - "3000:80"
+
+    # Frontend can be accessed directly on localhost:3000 for development.
+    # Normal application traffic should still go through Traefik.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+
+      # Frontend is the catch-all route, so it must have lower priority.
+      - "traefik.http.routers.frontend.priority=1"
+
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
     networks:
       - app-network
+
     restart: unless-stopped
 
-  # --- Base de données PostgreSQL ---
+
+  # =========================================================
+  # PostgreSQL + pgvector
+  # Stores application data and vector embeddings for RAG
+  # =========================================================
   database:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
+    container_name: quadgpt-database
+
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    # Database data survives container recreation
     volumes:
       - db-data:/var/lib/postgresql/data
+
+    # PostgreSQL is accessible only inside the Docker network
+    # Port 5432 is intentionally not exposed publicly
     networks:
       - app-network
+
+    # Verifies that PostgreSQL is really ready to accept connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
     restart: unless-stopped
 
+
+  # =========================================================
+  # MinIO
+  # S3-compatible object storage for uploaded documents/files
+  # =========================================================
+  minio:
+    image: quay.io/minio/minio
+    container_name: quadgpt-minio
+
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    # Persistent storage for uploaded files
+    volumes:
+      - minio-data:/data
+
+    # Administration console available only on localhost
+    # Internal API port 9000 is not publicly exposed
+    ports:
+      - "127.0.0.1:9001:9001"
+
+    networks:
+      - app-network
+
+    restart: unless-stopped
+
+
+  # =========================================================
+  # Local LLM service
+  # Runs open-weight models locally through Ollama.
+  # =========================================================
+  local-llm:
+    image: ollama/ollama:latest
+    container_name: quadgpt-local-llm
+
+    # Persist downloaded models between container recreations.
+    volumes:
+      - ollama-data:/root/.ollama
+
+    # Only accessible inside the internal Docker network.
+    networks:
+      - app-network
+
+    restart: unless-stopped
+
+
+# =========================================================
+# Internal Docker network
+# =========================================================
 networks:
   app-network:
+    driver: bridge
 
+
+# =========================================================
+# Persistent data
+# =========================================================
 volumes:
   db-data:
+  minio-data:
+  ollama-data:
