@@ -34,7 +34,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   }
 
   return (
-    <Flex direction="column" w="full" p="24px">
+    <Flex direction="column" w="full" h="100vh" bg="#343541" p="24px">
       <Messages
         currentTitle={currentTitle}
         previousMessages={previousMessages}
@@ -44,35 +44,39 @@ const ChatArea: React.FC<ChatAreaProps> = ({
         <Group attached w="full">
           <Input
             placeholder="Ask anything..."
-            bg="#40414f"
+            bg="#444654"
+            color="#ececf1"
             border="1px solid"
-            borderColor="white"
-            borderLeftRadius="8px"      // ← arrondi gauche
-                   // 🔑 supprime la barre vertical     
-
-
+            borderColor="rgba(255, 255, 255, 0.15)"
+            borderLeftRadius="8px"
             p={3}
             value={messageContent}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setMessageContent(e.target.value)
             }
             onKeyDown={handleKeyDown}
-            _placeholder={{ color: "white" }}
+            _placeholder={{ color: '#8e8ea0' }}
+            _focus={{
+              borderColor: '#aa3bff',
+              boxShadow: '0 0 0 1px #aa3bff',
+            }}
           />
           <IconButton
             aria-label="Send message"
             variant="ghost"
             onClick={handleSendMessage}
-            color="#8e8ea0"
-            _hover={{ bg: 'transparent', color: '#fff' }}
+            bg="#aa3bff"
+            color="#ffffff"
+            borderRightRadius="8px"
+            _hover={{ bg: '#9322eb' }}
           >
             <FiSend size={16} />
           </IconButton>
         </Group>
       </Box>
 
-      <Box px="16px" pt="24px">
-        <Text color="rgba(255,255,255,.5)" fontSize="12px" textAlign="center">
+      <Box px="16px" pt="16px">
+        <Text color="#8e8ea0" fontSize="12px" textAlign="center">
           © 2026 QuadGPT. All rights reserved.
         </Text>
       </Box>

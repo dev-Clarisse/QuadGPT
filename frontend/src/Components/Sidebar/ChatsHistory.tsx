@@ -12,24 +12,26 @@ const ChatsHistory: React.FC<ChatsHistoryProps> = ({
   handleSelectExistingChat,
 }) => {
   return (
-    <List.Root mt={3} gap={3} listStyleType="none">
+    <List.Root mt={4} gap={1} listStyleType="none">
       {titles?.map((title) => (
         <List.Item
           key={title}
           display="flex"
           alignItems="center"
-          p={3}
-          borderRadius="6px"
-          _hover={{ bg: '#2A2B32', pr: 4 }}
+          p="10px 12px"
+          borderRadius="8px"
+          color="#c5c5d2"
+          _hover={{ bg: '#2A2B32', color: '#ffffff' }}
           cursor="pointer"
-          wordBreak="break-all"
+          transition="all 0.15s ease"
           onClick={() => handleSelectExistingChat(title)}
         >
-          <Icon as={FiMessageSquare} w={4} h={4} mr={3} />
+          <Icon as={FiMessageSquare} w={4} h={4} mr={3} color="#aa3bff" />
           <Text
             overflow="hidden"
             textOverflow="ellipsis"
             whiteSpace="nowrap"
+            fontSize="14px"
             flexGrow={1}
           >
             {title}
