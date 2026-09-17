@@ -136,7 +136,7 @@ services:
     # Keeps compatibility with the team's existing localhost:3000 workflow.
     # Production traffic should still go through Traefik.
     ports:
-      - "127.0.0.1:3000:80"
+      - "3000:80"
 
     # Frontend can be accessed directly on localhost:3000 for development.
     # Normal application traffic should still go through Traefik.
