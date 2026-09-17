@@ -92,8 +92,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
 
-      # Optional external LLM provider
-      GLM_API_KEY: ${GLM_API_KEY:-}
+     
 
     # Wait until PostgreSQL is actually ready
     depends_on:
