@@ -9,12 +9,16 @@ type SidebarProps = {
   handleCreateNewChat: () => void
   handleSelectExistingChat: (title: string) => void
   previousMessages: Message[]
+  username?: string;
+  onLogout?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   previousMessages,
   handleCreateNewChat,
   handleSelectExistingChat,
+  username,
+  onLogout,
 }) => {
   const chatTitles = Array.from(
     new Set(previousMessages.map((prev) => prev.title))
@@ -58,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           />
         </Flex>
 
-        <SidebarFooter />
+        <SidebarFooter userEmail={username} onLogout={onLogout} />
       </Flex>
     </Flex>
   )

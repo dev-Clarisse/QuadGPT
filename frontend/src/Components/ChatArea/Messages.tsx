@@ -1,15 +1,17 @@
-import { Box, Flex, Heading, Text } from '@chakra-ui/react'
+import { Box, Flex, Heading, Text, Spinner } from '@chakra-ui/react'
 import React from 'react'
 import { type Message } from '../../App'
 
 type MessagesProps = {
   currentTitle: string
   previousMessages: Message[]
+  isLoading?: boolean 
 }
 
 const Messages: React.FC<MessagesProps> = ({
   currentTitle,
   previousMessages,
+  isLoading = false,
 }) => {
   const currentChat = previousMessages.filter(
     (prev) => prev.title === currentTitle
@@ -17,6 +19,7 @@ const Messages: React.FC<MessagesProps> = ({
 
   return (
     <Flex direction="column" h="full" w="full" overflowY="auto" mb={4} gap={4}>
+      
       {!currentTitle && (
         <Heading
           fontSize="36px"
@@ -31,6 +34,7 @@ const Messages: React.FC<MessagesProps> = ({
         </Heading>
       )}
 
+     
       {currentTitle && (
         <Flex direction="column" gap={3} px={4}>
           {currentChat?.map((message, index) => {
@@ -57,6 +61,26 @@ const Messages: React.FC<MessagesProps> = ({
               </Box>
             )
           })}
+
+          
+          {isLoading && (
+            <Box
+              alignSelf="flex-start"
+              bg="#444654"
+              color="#ffffff"
+              p="12px 16px"
+              borderRadius="12px"
+              borderBottomLeftRadius="2px"
+              display="flex"
+              alignItems="center"
+              gap={2}
+            >
+              <Text fontSize="11px" fontWeight={700} opacity={0.7}>
+                QUADGPT
+              </Text>
+              <Spinner size="xs" color="#aa3bff" />
+            </Box>
+          )}
         </Flex>
       )}
     </Flex>

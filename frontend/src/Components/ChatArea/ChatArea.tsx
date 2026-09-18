@@ -17,6 +17,7 @@ type ChatAreaProps = {
   setMessageContent: (value: string) => void
   handleSendMessage: () => void
   previousMessages: Message[]
+  isLoading?: boolean
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({
@@ -25,6 +26,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   setMessageContent,
   handleSendMessage,
   previousMessages,
+  isLoading,
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -38,6 +40,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
       <Messages
         currentTitle={currentTitle}
         previousMessages={previousMessages}
+        isLoading={isLoading}
       />
 
       <Box px="16px">

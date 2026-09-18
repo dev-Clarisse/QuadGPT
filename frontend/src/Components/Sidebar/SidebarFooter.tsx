@@ -1,10 +1,18 @@
 import { Box, Button, Flex, Text } from '@chakra-ui/react'
 import React from 'react'
-import { User } from 'lucide-react'
+import { User, LogOut } from 'lucide-react'
 
-const SidebarFooter: React.FC = () => {
+
+interface SidebarFooterProps {
+  userEmail?: string;
+  onLogout?: () => void
+}
+
+
+const SidebarFooter: React.FC<SidebarFooterProps> = ({ userEmail = 'utilisateur@email.com', onLogout }) => {
   return (
-    <Flex direction="column" align="flex-start" width="full" pt={2}>
+    <Flex direction="row" align="center" justify="space-between" width="full" pt={2} gap={1}>
+      
       <Button
         variant="ghost"
         display="flex"
@@ -13,7 +21,8 @@ const SidebarFooter: React.FC = () => {
         p={2}
         borderRadius="8px"
         _hover={{ bg: '#2A2B32' }}
-        w="full"
+        flex="1"
+        minW={0} 
         gap={3}
       >
         <Box
@@ -36,8 +45,21 @@ const SidebarFooter: React.FC = () => {
           textOverflow="ellipsis"
           whiteSpace="nowrap"
         >
-          claire.chabas@gmail.com
+          {userEmail}
         </Text>
+      </Button>
+
+      <Button
+        variant="ghost"
+        p={2}
+        borderRadius="8px"
+        _hover={{ bg: '#2A2B32', color: '#ff4d4d' }}
+        color="#8e8ea0"
+        onClick={onLogout}
+        title="Log out"
+        flexShrink={0}
+      >
+        <LogOut size={18} />
       </Button>
     </Flex>
   )

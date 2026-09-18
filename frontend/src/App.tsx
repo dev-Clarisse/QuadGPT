@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import ChatArea from './Components/ChatArea/ChatArea'
 import Sidebar from './Components/Sidebar/Sidebar'
 
@@ -8,75 +8,60 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
 }
-const defaultMessage: Message = {
-  title: '',
-  role: 'user',
-  content: '',
+
+interface AppProps {
+  username?: string
+  onLogout?: () => void
 }
 
-const App = () => {
+const App: React.FC<AppProps> = ({ username, onLogout }) => {
   const [currentTitle, setCurrentTitle] = useState('')
   const [previousMessages, setPreviousMessages] = useState<Message[]>([])
   const [messageContent, setMessageContent] = useState('')
-  const [message, setMessage] = useState<Message>(defaultMessage)
+  const [isLoading, setIsLoading] = useState(false)
 
   const createNewChat = () => {
-    setMessage(defaultMessage)
     setMessageContent('')
     setCurrentTitle('')
   }
 
   const sendMessage = async () => {
-    const options = {
-      method: 'POST',
-      body: JSON.stringify({
-        message: messageContent,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    if (!messageContent.trim()) return
+
+    const userText = messageContent
+    const title = currentTitle || userText
+
+    if (!currentTitle) {
+      setCurrentTitle(userText)
     }
 
-    try {
-      const response = await fetch('http://localhost:8080/api/chat', options)
-      const data = await response.json()
+    setPreviousMessages((prev) => [
+      ...prev,
+      { title: title, role: 'user', content: userText },
+    ])
 
-      setMessage(data.choices[0].message)
-    } catch (error) {
-      console.log('Error in sendMessage: ', error)
-    }
+    setMessageContent('')
+    setIsLoading(true)
+
+    setTimeout(() => {
+      const mockResponses = [
+        `Bonjour ! C'est une réponse de démonstration pour : "${userText}".`,
+        `Je suis QuadGPT en mode simulation ! Votre backend prendra bientôt le relais.`,
+        `Merci pour votre message ! Une fois le backend connecté, je générerai de vraies réponses IA.`,
+      ]
+      const randomResponse =
+        mockResponses[Math.floor(Math.random() * mockResponses.length)]
+
+      setPreviousMessages((prev) => [
+        ...prev,
+        { title: title, role: 'assistant', content: randomResponse },
+      ])
+      setIsLoading(false)
+    }, 1000)
   }
-
-  useEffect(() => {
-    // We're initiating a new chat
-    if (!currentTitle && messageContent && message) {
-      setCurrentTitle(messageContent)
-    }
-
-    // We're in an existing chat
-    if (currentTitle && messageContent && message) {
-      setPreviousMessages(
-        (prev) =>
-          [
-            ...prev,
-            {
-              title: currentTitle,
-              role: 'user',
-              message: messageContent,
-            },
-            {
-              title: currentTitle,
-              role: message.role,
-              content: message.content,
-            },
-          ] as Message[]
-      )
-    }
-  }, [message, currentTitle])
 
   const selectExistingChat = (title: string) => {
     setCurrentTitle(title)
-    setMessage(defaultMessage)
     setMessageContent('')
   }
 
@@ -86,6 +71,8 @@ const App = () => {
         handleSelectExistingChat={selectExistingChat}
         previousMessages={previousMessages}
         handleCreateNewChat={createNewChat}
+        username={username}
+        onLogout={onLogout}
       />
 
       <ChatArea
@@ -94,6 +81,7 @@ const App = () => {
         messageContent={messageContent}
         setMessageContent={setMessageContent}
         handleSendMessage={sendMessage}
+        isLoading={isLoading} 
       />
     </Flex>
   )

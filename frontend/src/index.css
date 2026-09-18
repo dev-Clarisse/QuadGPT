@@ -115,3 +115,18 @@
 .submit-btn:active {
   transform: scale(0.98);
 }
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #8e8ea0;
+}
