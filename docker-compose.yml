@@ -172,12 +172,17 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
 
+    # Exposed on localhost only, so the backend can also be run
+    # outside Docker (e.g. via `mvn spring-boot:run`) during development.
+    ports:
+      - "127.0.0.1:5433:5432"
+
     # Database data survives container recreation
     volumes:
       - db-data:/var/lib/postgresql/data
 
-    # PostgreSQL is accessible only inside the Docker network
-    # Port 5432 is intentionally not exposed publicly
+    # PostgreSQL is reachable from other containers on the internal
+    # network, and from the host machine via the port mapping above.
     networks:
       - app-network
 
