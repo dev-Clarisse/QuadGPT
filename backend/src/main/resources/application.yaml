@@ -1,3 +1,12 @@
 spring:
   application:
     name: backend
+  datasource:
+    url: jdbc:postgresql://localhost:5433/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+zai:
+  api-key: ${ZAI_API_KEY:ollama}
+  base-url: ${ZAI_BASE_URL:http://localhost:11434/v1}
+  model: ${ZAI_MODEL:qwen2.5:1.5b}
