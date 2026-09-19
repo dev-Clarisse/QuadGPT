@@ -136,10 +136,13 @@ services:
     # Keeps compatibility with the team's existing localhost:3000 workflow.
     # Production traffic should still go through Traefik.
     ports:
-      - "3000:80"
+      - "3000:80" 
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  
+    environment:
+      - CHOKIDAR_USEPOLLING=true  
 
-    # Frontend can be accessed directly on localhost:3000 for development.
-    # Normal application traffic should still go through Traefik.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
