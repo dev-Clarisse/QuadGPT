@@ -4,11 +4,11 @@ spring:
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://localhost:5433/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: 'jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:quadgpt}'
+    username: '${DB_USER:quadgpt_user}'
+    password: '${DB_PASSWORD:quadgpt}'
 
 zai:
-  api-key: ${ZAI_API_KEY}
-  base-url: ${ZAI_BASE_URL:https://openrouter.ai/api/v1}
-  model: ${ZAI_MODEL:deepseek/deepseek-v4-flash-0731:free}
+  api-key: '${ZAI_API_KEY}'
+  base-url: '${ZAI_BASE_URL}'
+  model: '${ZAI_MODEL}'
