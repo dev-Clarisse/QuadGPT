@@ -6,6 +6,11 @@ interface ConnexionProps {
   onLogin: (username: string) => void;
 }
 
+interface UserAccount {
+  login: string;
+  password: string;
+}
+
 const MOCK_USER = {
   login: 'clarisse15032004@gmail.com',
   password: 'password123'
@@ -14,6 +19,8 @@ const MOCK_USER = {
 
 function Connexion({ onLogin }: ConnexionProps) {
   const [formData, setFormData] = useState({ login: '', password: '' });
+  const [confirmation, setConfirmation] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,26 +30,67 @@ function Connexion({ onLogin }: ConnexionProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const switchMode = () => {
+    setIsRegistering((prev) => !prev);
+    setFormData({ login: '', password: '' });
+    setConfirmation('');
+    setError('');
+    setSuccess(false);
+  };
+
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     setError('');
 
-    if (
-      formData.login === MOCK_USER.login &&
-      formData.password === MOCK_USER.password
-    ) {
+    if (isRegistering) {
+      if (formData.password !== confirmation) {
+        setError('The passwords do not match.');
+        return;
+      }
+
+      const accounts: UserAccount[] = JSON.parse(
+        localStorage.getItem('userAccounts') || '[]'
+      );
+      const accountExists = [MOCK_USER, ...accounts].some(
+        (account) => account.login === formData.login
+      );
+
+      if (accountExists) {
+        setError('An account already exists with this email address.');
+        return;
+      }
+
+      localStorage.setItem(
+        'userAccounts',
+        JSON.stringify([...accounts, formData])
+      );
+      setSuccess(true);
+      localStorage.setItem('fakeToken', '123456789');
+      onLogin(formData.login);
+      return;
+    }
+
+    const accounts: UserAccount[] = JSON.parse(
+      localStorage.getItem('userAccounts') || '[]'
+    );
+    const isValidAccount = [MOCK_USER, ...accounts].some(
+      (account) =>
+        account.login === formData.login && account.password === formData.password
+    );
+
+    if (isValidAccount) {
       setSuccess(true);
       localStorage.setItem('fakeToken', '123456789');
       onLogin(formData.login);
     } else {
-      setError(`Identifiants incorrects (Essayez: ${MOCK_USER.login} / ${MOCK_USER.password})`);
+      setError('Invalid email address or password.');
     }
   };
 
   return (
     <div className="connexion-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      
-      
+
+
       <header style={{
         position: 'absolute',
         top: '20px',
@@ -67,13 +115,15 @@ function Connexion({ onLogin }: ConnexionProps) {
         </span>
       </header>
 
-   
-      <div className="connexion-card">
-        <h2>Welcome back</h2>
-        <p className="connexion-subtitle">Please sign in to your account</p>
 
-        {error && <p style={{ color: 'red', fontSize: '0.9rem' }}>{error}</p>}
-        {success && <p style={{ color: 'green', fontSize: '0.9rem' }}>Connexion réussie !</p>}
+      <div className="connexion-card">
+        <h2>{isRegistering ? 'Create your account' : 'Welcome back'}</h2>
+        <p className="connexion-subtitle">
+          {isRegistering ? 'Join QuadGPT in a few seconds' : 'Please sign in to your account'}
+        </p>
+
+        {error && <p className="connexion-message connexion-error">{error}</p>}
+        {success && <p className="connexion-message connexion-success">Connexion réussie !</p>}
 
         <form className="connexion-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -122,8 +172,32 @@ function Connexion({ onLogin }: ConnexionProps) {
             </div>
           </div>
 
-          <button type="submit" className="submit-btn">Sign in</button>
+          {isRegistering && (
+            <div className="form-group">
+              <label htmlFor="confirmation">Confirm password</label>
+              <input
+                type="password"
+                id="confirmation"
+                name="confirmation"
+                placeholder="••••••••"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <button type="submit" className="submit-btn">
+            {isRegistering ? 'Create account' : 'Sign in'}
+          </button>
         </form>
+
+        <p className="connexion-switch">
+          {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <button type="button" onClick={switchMode}>
+            {isRegistering ? 'Sign in' : 'Create one'}
+          </button>
+        </p>
       </div>
     </div>
   );
