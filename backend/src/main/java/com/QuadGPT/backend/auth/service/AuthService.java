@@ -5,6 +5,8 @@ import com.QuadGPT.backend.auth.dto.LoginRequest;
 import com.QuadGPT.backend.auth.dto.LoginResponse;
 import com.QuadGPT.backend.auth.entity.User;
 import com.QuadGPT.backend.auth.repository.UserRepository;
+import com.QuadGPT.backend.auth.exception.EmailAlreadyRegisteredException;
+import com.QuadGPT.backend.auth.exception.InvalidCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -24,7 +26,7 @@ public class AuthService {
     public void register(RegisterRequest request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw new EmailAlreadyRegisteredException();
         }
 
         User user = new User();
@@ -37,10 +39,10 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+            .orElseThrow(InvalidCredentialsException::new);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new InvalidCredentialsException();
         }
 
         String token = jwtService.generateToken(user.getEmail());
