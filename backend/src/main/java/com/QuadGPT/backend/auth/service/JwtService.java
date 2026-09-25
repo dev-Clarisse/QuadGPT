@@ -15,9 +15,18 @@ public class JwtService {
     private static final long EXPIRATION_TIME =
             1000 * 60 * 60; // 1 heure
 
+    private static final String ISSUER = "quadgpt";
+    private static final String AUDIENCE = "quadgpt-api";
+
     private final SecretKey key;
 
-    public JwtService(@Value("${JWT_SECRET}") String secret) {
+   public JwtService(@Value("${JWT_SECRET}") String secret) {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must be at least 32 characters long"
+            );
+        }
+
         this.key = Keys.hmacShaKeyFor(
                 secret.getBytes(StandardCharsets.UTF_8)
         );
@@ -29,16 +38,20 @@ public class JwtService {
         Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
 
         return Jwts.builder()
-                .subject(email)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(key)
-                .compact();
+            .subject(email)
+            .issuer(ISSUER)
+            .audience().add(AUDIENCE).and()
+            .issuedAt(now)
+            .expiration(expiration)
+            .signWith(key)
+            .compact();
     }
 
     public String extractEmail(String token) {
         return Jwts.parser()
                 .verifyWith(key)
+                .requireIssuer(ISSUER)
+                .requireAudience(AUDIENCE)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
