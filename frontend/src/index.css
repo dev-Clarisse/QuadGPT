@@ -116,6 +116,42 @@
   transform: scale(0.98);
 }
 
+.connexion-message {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.connexion-error {
+  color: #ff8d8d;
+}
+
+.connexion-success {
+  color: #83e6ad;
+}
+
+.connexion-switch {
+  margin: 24px 0 0;
+  color: #c5c5d2;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.connexion-switch button {
+  padding: 0;
+  color: #c77dff;
+  font: inherit;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.connexion-switch button:hover {
+  color: #e0b3ff;
+  text-decoration: underline;
+}
+
 .password-input-wrapper {
   position: relative;
   display: flex;
