@@ -3,19 +3,8 @@ import { Eye, EyeOff, Bot } from 'lucide-react';
 import '../../index.css';
 
 interface ConnexionProps {
-  onLogin: (username: string) => void;
+  onLogin: (username: string, token: string) => void;
 }
-
-interface UserAccount {
-  login: string;
-  password: string;
-}
-
-const MOCK_USER = {
-  login: 'clarisse15032004@gmail.com',
-  password: 'password123'
-};
-
 
 function Connexion({ onLogin }: ConnexionProps) {
   const [formData, setFormData] = useState({ login: '', password: '' });
@@ -24,6 +13,7 @@ function Connexion({ onLogin }: ConnexionProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,7 +28,7 @@ function Connexion({ onLogin }: ConnexionProps) {
     setSuccess(false);
   };
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
@@ -47,43 +37,56 @@ function Connexion({ onLogin }: ConnexionProps) {
         setError('The passwords do not match.');
         return;
       }
-
-      const accounts: UserAccount[] = JSON.parse(
-        localStorage.getItem('userAccounts') || '[]'
-      );
-      const accountExists = [MOCK_USER, ...accounts].some(
-        (account) => account.login === formData.login
-      );
-
-      if (accountExists) {
-        setError('An account already exists with this email address.');
-        return;
-      }
-
-      localStorage.setItem(
-        'userAccounts',
-        JSON.stringify([...accounts, formData])
-      );
-      setSuccess(true);
-      localStorage.setItem('fakeToken', '123456789');
-      onLogin(formData.login);
-      return;
     }
 
-    const accounts: UserAccount[] = JSON.parse(
-      localStorage.getItem('userAccounts') || '[]'
-    );
-    const isValidAccount = [MOCK_USER, ...accounts].some(
-      (account) =>
-        account.login === formData.login && account.password === formData.password
-    );
+    setIsSubmitting(true);
+    try {
+      const credentials = JSON.stringify({
+        email: formData.login,
+        password: formData.password,
+      });
 
-    if (isValidAccount) {
+      if (isRegistering) {
+        const registerResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: credentials,
+        });
+
+        if (!registerResponse.ok) {
+          throw new Error(
+            (await registerResponse.text()) || 'Unable to create your account.'
+          );
+        }
+      }
+
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: credentials,
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error(
+          (await loginResponse.text()) || 'Invalid email address or password.'
+        );
+      }
+
+      const { token } = (await loginResponse.json()) as { token: string };
+      if (!token) {
+        throw new Error('The server did not return an authentication token.');
+      }
+
       setSuccess(true);
-      localStorage.setItem('fakeToken', '123456789');
-      onLogin(formData.login);
-    } else {
-      setError('Invalid email address or password.');
+      onLogin(formData.login, token);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Unable to connect to the server.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -187,8 +190,8 @@ function Connexion({ onLogin }: ConnexionProps) {
             </div>
           )}
 
-          <button type="submit" className="submit-btn">
-            {isRegistering ? 'Create account' : 'Sign in'}
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Please wait...' : isRegistering ? 'Create account' : 'Sign in'}
           </button>
         </form>
 
