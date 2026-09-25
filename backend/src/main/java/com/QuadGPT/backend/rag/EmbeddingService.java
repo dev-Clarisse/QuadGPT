@@ -27,16 +27,16 @@ public class EmbeddingService {
         var request = new EmbeddingRequest(embeddingModel, text);
 
         EmbeddingResponse response = embeddingRestClient.post()
-                .uri("/api/embeddings")
+                .uri("/api/embed")
                 .body(request)
                 .retrieve()
                 .body(EmbeddingResponse.class);
 
-        if (response == null || response.embedding() == null) {
+        if (response == null || response.embeddings() == null || response.embeddings().isEmpty()) {
             throw new IllegalStateException("Réponse d'embedding vide");
         }
 
-        List<Double> values = response.embedding();
+        List<Double> values = response.embeddings().get(0);
         float[] result = new float[values.size()];
         for (int i = 0; i < values.size(); i++) {
             result[i] = values.get(i).floatValue();
@@ -44,6 +44,6 @@ public class EmbeddingService {
         return result;
     }
 
-    private record EmbeddingRequest(String model, String prompt) {}
-    private record EmbeddingResponse(List<Double> embedding) {}
+    private record EmbeddingRequest(String model, String input) {}
+    private record EmbeddingResponse(List<List<Double>> embeddings) {}
 }
