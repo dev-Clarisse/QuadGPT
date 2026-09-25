@@ -83,16 +83,21 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
 
       # Internal URL used by the backend to call the local LLM service.
       OLLAMA_BASE_URL: http://local-llm:11434
+
+      # OpenAI-compatible configuration used by the current backend LLM client.
+      # For local development, requests are redirected to Ollama inside Docker.
+      ZAI_API_KEY: ${ZAI_API_KEY:-ollama}
+      ZAI_BASE_URL: ${ZAI_BASE_URL:-http://local-llm:11434/v1}
+      ZAI_MODEL: ${ZAI_MODEL:-qwen2.5:1.5b}
 
       # MinIO internal endpoint
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-
-     
 
     # Wait until PostgreSQL is actually ready
     depends_on:
@@ -132,11 +137,12 @@ services:
 
     container_name: quadgpt-frontend
 
-    # Local-only port for frontend development.
-    # Keeps compatibility with the team's existing localhost:3000 workflow.
-    # Production traffic should still go through Traefik.
+    # Local-only frontend port for development.
+    # Binding to 127.0.0.1 prevents exposure to other devices
+    # while keeping compatibility with localhost:3000.
+    # Production traffic should go through Traefik.
     ports:
-      - "3000:80" 
+      - "127.0.0.1:3000:80"
     volumes:
       - ./frontend:/app
       - /app/node_modules  
