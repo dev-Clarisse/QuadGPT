@@ -23,9 +23,13 @@ public class RagService {
         this.llmClientService = llmClientService;
     }
 
-    public String ask(String question) {
+    public String ask(String question, String department) {
         float[] questionEmbedding = embeddingService.embed(question);
-        List<String> relevantChunks = chunkRepository.findSimilarChunks(questionEmbedding, 3);
+        List<String> relevantChunks = chunkRepository.findSimilarChunks(questionEmbedding, 3, department);
+
+        if (relevantChunks.isEmpty()) {
+            return "Aucun document pertinent trouvé pour répondre à cette question.";
+        }
 
         String context = String.join("\n\n", relevantChunks);
 

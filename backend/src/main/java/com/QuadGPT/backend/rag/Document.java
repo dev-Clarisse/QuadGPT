@@ -20,16 +20,21 @@ public class Document {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String department;
+
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     public Document() {}
 
-    public Document(String name) {
+    public Document(String name, String department) {
         this.name = name;
+        this.department = department;
     }
 
     public Long getId() { return id; }
     public String getName() { return name; }
+    public String getDepartment() { return department; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

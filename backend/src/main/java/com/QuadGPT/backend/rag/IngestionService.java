@@ -22,12 +22,12 @@ public class IngestionService {
         this.embeddingService = embeddingService;
     }
 
-    public void ingest(String documentName, String fullText) {
-        Document document = documentRepository.save(new Document(documentName));
+    public void ingest(String documentName, String fullText, String department) {
+        Document document = documentRepository.save(new Document(documentName, department));
 
         for (String chunkText : textChunker.chunk(fullText)) {
             float[] embedding = embeddingService.embed(chunkText);
-            chunkRepository.save(document.getId(), chunkText, embedding);
+            chunkRepository.save(document.getId(), chunkText, embedding, department);
         }
     }
 }
