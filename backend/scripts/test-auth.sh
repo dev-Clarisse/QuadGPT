@@ -24,7 +24,7 @@ echo
 # 1. Register new user
 # --------------------------------------------------
 
-TEST_EMAIL="autotest@example.com"
+TEST_EMAIL="autotest-$(date +%s)@example.com"
 TEST_PASSWORD="password123"
 
 REGISTER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \

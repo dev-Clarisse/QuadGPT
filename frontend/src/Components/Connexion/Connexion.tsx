@@ -3,46 +3,97 @@ import { Eye, EyeOff, Bot } from 'lucide-react';
 import '../../index.css';
 
 interface ConnexionProps {
-  onLogin: (username: string) => void;
+  onLogin: (username: string, token: string) => void;
 }
-
-const MOCK_USER = {
-  login: 'clarisse15032004@gmail.com',
-  password: 'password123'
-};
-
 
 function Connexion({ onLogin }: ConnexionProps) {
   const [formData, setFormData] = useState({ login: '', password: '' });
+  const [confirmation, setConfirmation] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const switchMode = () => {
+    setIsRegistering((prev) => !prev);
+    setFormData({ login: '', password: '' });
+    setConfirmation('');
+    setError('');
+    setSuccess(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
-    if (
-      formData.login === MOCK_USER.login &&
-      formData.password === MOCK_USER.password
-    ) {
+    if (isRegistering) {
+      if (formData.password !== confirmation) {
+        setError('The passwords do not match.');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    try {
+      const credentials = JSON.stringify({
+        email: formData.login,
+        password: formData.password,
+      });
+
+      if (isRegistering) {
+        const registerResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: credentials,
+        });
+
+        if (!registerResponse.ok) {
+          throw new Error(
+            (await registerResponse.text()) || 'Unable to create your account.'
+          );
+        }
+      }
+
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: credentials,
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error(
+          (await loginResponse.text()) || 'Invalid email address or password.'
+        );
+      }
+
+      const { token } = (await loginResponse.json()) as { token: string };
+      if (!token) {
+        throw new Error('The server did not return an authentication token.');
+      }
+
       setSuccess(true);
-      localStorage.setItem('fakeToken', '123456789');
-      onLogin(formData.login);
-    } else {
-      setError(`Identifiants incorrects (Essayez: ${MOCK_USER.login} / ${MOCK_USER.password})`);
+      onLogin(formData.login, token);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Unable to connect to the server.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="connexion-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      
-      
+
+
       <header style={{
         position: 'absolute',
         top: '20px',
@@ -67,13 +118,15 @@ function Connexion({ onLogin }: ConnexionProps) {
         </span>
       </header>
 
-   
-      <div className="connexion-card">
-        <h2>Welcome back</h2>
-        <p className="connexion-subtitle">Please sign in to your account</p>
 
-        {error && <p style={{ color: 'red', fontSize: '0.9rem' }}>{error}</p>}
-        {success && <p style={{ color: 'green', fontSize: '0.9rem' }}>Connexion réussie !</p>}
+      <div className="connexion-card">
+        <h2>{isRegistering ? 'Create your account' : 'Welcome back'}</h2>
+        <p className="connexion-subtitle">
+          {isRegistering ? 'Join QuadGPT in a few seconds' : 'Please sign in to your account'}
+        </p>
+
+        {error && <p className="connexion-message connexion-error">{error}</p>}
+        {success && <p className="connexion-message connexion-success">Connexion réussie !</p>}
 
         <form className="connexion-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -122,8 +175,32 @@ function Connexion({ onLogin }: ConnexionProps) {
             </div>
           </div>
 
-          <button type="submit" className="submit-btn">Sign in</button>
+          {isRegistering && (
+            <div className="form-group">
+              <label htmlFor="confirmation">Confirm password</label>
+              <input
+                type="password"
+                id="confirmation"
+                name="confirmation"
+                placeholder="••••••••"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Please wait...' : isRegistering ? 'Create account' : 'Sign in'}
+          </button>
         </form>
+
+        <p className="connexion-switch">
+          {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <button type="button" onClick={switchMode}>
+            {isRegistering ? 'Sign in' : 'Create one'}
+          </button>
+        </p>
       </div>
     </div>
   );

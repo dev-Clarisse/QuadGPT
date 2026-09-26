@@ -11,10 +11,11 @@ export interface Message {
 
 interface AppProps {
   username?: string
+  accessToken: string
   onLogout?: () => void
 }
 
-const App: React.FC<AppProps> = ({ username, onLogout }) => {
+const App: React.FC<AppProps> = ({ username, accessToken, onLogout }) => {
   const [currentTitle, setCurrentTitle] = useState('')
   const [previousMessages, setPreviousMessages] = useState<Message[]>([])
   const [messageContent, setMessageContent] = useState('')
@@ -43,21 +44,39 @@ const App: React.FC<AppProps> = ({ username, onLogout }) => {
     setMessageContent('')
     setIsLoading(true)
 
-    setTimeout(() => {
-      const mockResponses = [
-        `Bonjour ! C'est une réponse de démonstration pour : "${userText}".`,
-        `Je suis QuadGPT en mode simulation ! Votre backend prendra bientôt le relais.`,
-        `Merci pour votre message ! Une fois le backend connecté, je générerai de vraies réponses IA.`,
-      ]
-      const randomResponse =
-        mockResponses[Math.floor(Math.random() * mockResponses.length)]
+    try {
+      const response = await fetch('/api/test/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: userText,
+      })
 
+      if (!response.ok) {
+        throw new Error((await response.text()) || 'The message could not be sent.')
+      }
+
+      const assistantResponse = await response.text()
       setPreviousMessages((prev) => [
         ...prev,
-        { title: title, role: 'assistant', content: randomResponse },
+        { title, role: 'assistant', content: assistantResponse },
       ])
+    } catch (requestError) {
+      setPreviousMessages((prev) => [
+        ...prev,
+        {
+          title,
+          role: 'assistant',
+          content: requestError instanceof Error
+            ? requestError.message
+            : 'Unable to connect to the server.',
+        },
+      ])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const selectExistingChat = (title: string) => {
@@ -81,7 +100,7 @@ const App: React.FC<AppProps> = ({ username, onLogout }) => {
         messageContent={messageContent}
         setMessageContent={setMessageContent}
         handleSendMessage={sendMessage}
-        isLoading={isLoading} 
+        isLoading={isLoading}
       />
     </Flex>
   )
