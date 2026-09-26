@@ -1,6 +1,10 @@
 package com.QuadGPT.backend.rag;
 
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
+
+import com.QuadGPT.backend.department.Department;
 
 @Service
 public class IngestionService {
@@ -22,12 +26,23 @@ public class IngestionService {
         this.embeddingService = embeddingService;
     }
 
-    public void ingest(String documentName, String fullText, String department) {
-        Document document = documentRepository.save(new Document(documentName, department));
+    public void ingest(
+            String documentName,
+            String fullText,
+            Set<Department> departments
+    ) {
+        Document document = documentRepository.save(
+                new Document(documentName, departments)
+        );
 
         for (String chunkText : textChunker.chunk(fullText)) {
             float[] embedding = embeddingService.embed(chunkText);
-            chunkRepository.save(document.getId(), chunkText, embedding, department);
+
+            chunkRepository.save(
+                    document.getId(),
+                    chunkText,
+                    embedding
+            );
         }
     }
 }

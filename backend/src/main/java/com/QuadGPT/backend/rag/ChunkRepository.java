@@ -16,28 +16,34 @@ public class ChunkRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void save(Long documentId, String content, float[] embedding, String department) {
+    public void save(
+            Long documentId,
+            String content,
+            float[] embedding
+    ) {
         jdbcTemplate.update(
-                "INSERT INTO document_chunk (document_id, content, embedding, department) VALUES (?, ?, ?, ?)",
+                "INSERT INTO document_chunk (document_id, content, embedding) VALUES (?, ?, ?)",
                 documentId,
                 content,
-                new PGvector(embedding),
-                department
+                new PGvector(embedding)
         );
     }
 
-    public List<String> findSimilarChunks(float[] queryEmbedding, int limit, String department) {
-        if (department == null) {
-            return jdbcTemplate.query(
-                    "SELECT content FROM document_chunk ORDER BY embedding <=> ? LIMIT ?",
-                    (rs, rowNum) -> rs.getString("content"),
-                    new PGvector(queryEmbedding),
-                    limit
-            );
-        }
-
+    public List<String> findSimilarChunks(
+            float[] queryEmbedding,
+            int limit,
+            String department
+    ) {
         return jdbcTemplate.query(
-                "SELECT content FROM document_chunk WHERE department = ? ORDER BY embedding <=> ? LIMIT ?",
+                """
+                SELECT dc.content
+                FROM document_chunk dc
+                JOIN document_department dd
+                    ON dd.document_id = dc.document_id
+                WHERE dd.department = ?
+                ORDER BY dc.embedding <=> ?
+                LIMIT ?
+                """,
                 (rs, rowNum) -> rs.getString("content"),
                 department,
                 new PGvector(queryEmbedding),
