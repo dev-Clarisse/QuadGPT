@@ -21,102 +21,163 @@ echo "================================"
 echo
 
 # --------------------------------------------------
-# 1. Create test user
+# 1. Create test users
 # --------------------------------------------------
 
-TEST_EMAIL="ragtest-$(date +%s)@example.com"
-TEST_PASSWORD="password123"
+TIMESTAMP=$(date +%s)
+PASSWORD="password123"
 
-REGISTER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST "$BASE_URL/api/auth/register" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}")
+IT_EMAIL="rag-it-$TIMESTAMP@example.com"
+RH_EMAIL="rag-rh-$TIMESTAMP@example.com"
+DIRECTION_EMAIL="rag-direction-$TIMESTAMP@example.com"
 
-if [ "$REGISTER_STATUS" = "200" ]; then
-    pass "Create test user"
+register_user() {
+    local email="$1"
+    local department="$2"
+
+    curl -s -o /dev/null -w "%{http_code}" \
+        -X POST "$BASE_URL/api/auth/register" \
+        -H "Content-Type: application/json" \
+        -d "{\"email\":\"$email\",\"password\":\"$PASSWORD\",\"department\":\"$department\"}"
+}
+
+IT_STATUS=$(register_user "$IT_EMAIL" "IT")
+RH_STATUS=$(register_user "$RH_EMAIL" "RH")
+DIRECTION_STATUS=$(register_user "$DIRECTION_EMAIL" "DIRECTION")
+
+if [ "$IT_STATUS" = "200" ] && \
+   [ "$RH_STATUS" = "200" ] && \
+   [ "$DIRECTION_STATUS" = "200" ]; then
+    pass "Create test users"
 else
-    fail "Create test user (HTTP $REGISTER_STATUS)"
+    fail "Create test users"
 fi
 
 # --------------------------------------------------
-# 2. Login
+# 2. Login users
 # --------------------------------------------------
 
-LOGIN_RESPONSE=$(curl -s \
-    -X POST "$BASE_URL/api/auth/login" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}")
+login_user() {
+    local email="$1"
 
-TOKEN=$(echo "$LOGIN_RESPONSE" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+    curl -s \
+        -X POST "$BASE_URL/api/auth/login" \
+        -H "Content-Type: application/json" \
+        -d "{\"email\":\"$email\",\"password\":\"$PASSWORD\"}"
+}
 
-if [ -n "$TOKEN" ]; then
-    pass "Login"
+IT_LOGIN=$(login_user "$IT_EMAIL")
+RH_LOGIN=$(login_user "$RH_EMAIL")
+DIRECTION_LOGIN=$(login_user "$DIRECTION_EMAIL")
+
+IT_TOKEN=$(echo "$IT_LOGIN" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+RH_TOKEN=$(echo "$RH_LOGIN" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+DIRECTION_TOKEN=$(echo "$DIRECTION_LOGIN" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+
+if [ -n "$IT_TOKEN" ] && \
+   [ -n "$RH_TOKEN" ] && \
+   [ -n "$DIRECTION_TOKEN" ]; then
+    pass "Login test users"
 else
-    fail "Login"
+    fail "Login test users"
 fi
 
 # --------------------------------------------------
-# 3. Ingest document
+# 3. Ingest document for IT + DIRECTION
 # --------------------------------------------------
 
-DOCUMENT_NAME="rag-test-$(date +%s)"
-DEPARTMENT="informatique"
+DOCUMENT_NAME="rag-multi-department-$TIMESTAMP"
 
 INGEST_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST "$BASE_URL/api/rag/ingest" \
-    -H "Authorization: Bearer $TOKEN" \
+    -H "Authorization: Bearer $IT_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{
         \"name\":\"$DOCUMENT_NAME\",
-        \"department\":\"$DEPARTMENT\",
+        \"departments\":[\"IT\",\"DIRECTION\"],
         \"text\":\"QuadGPT est une plateforme de chat souveraine pour les entreprises. Elle permet de rechercher des informations dans des documents internes.\"
     }")
 
 if [ "$INGEST_STATUS" = "200" ]; then
-    pass "Document ingestion"
+    pass "Multi-department document ingestion"
 else
-    fail "Document ingestion (HTTP $INGEST_STATUS)"
+    fail "Multi-department document ingestion (HTTP $INGEST_STATUS)"
 fi
 
 # --------------------------------------------------
-# 4. Ask question about document
+# 4. IT can access the document
 # --------------------------------------------------
 
-RAG_RESPONSE=$(curl -s \
-    -X POST "$BASE_URL/api/rag/ask" \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    -d "{
-        \"question\":\"Que permet de faire QuadGPT ?\",
-        \"department\":\"$DEPARTMENT\"
-    }")
-
-if [ -n "$RAG_RESPONSE" ] && \
-   [ "$RAG_RESPONSE" != "Aucun document pertinent trouvé pour répondre à cette question." ]; then
-    pass "RAG question answered"
-else
-    fail "RAG question answered"
-fi
-
-# --------------------------------------------------
-# 5. Department filtering
-# --------------------------------------------------
-
-OTHER_DEPARTMENT_RESPONSE=$(curl -s \
-    -X POST "$BASE_URL/api/rag/ask" \
-    -H "Authorization: Bearer $TOKEN" \
+IT_CHAT=$(curl -s \
+    -X POST "$BASE_URL/api/chat" \
+    -H "Authorization: Bearer $IT_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{
-        "question":"Que permet de faire QuadGPT ?",
-        "department":"ressources-humaines"
+        "message":"Que permet de faire QuadGPT ?"
     }')
 
-EXPECTED_EMPTY="Aucun document pertinent trouvé pour répondre à cette question."
-
-if [ "$OTHER_DEPARTMENT_RESPONSE" = "$EXPECTED_EMPTY" ]; then
-    pass "Department filtering"
+if [ -n "$IT_CHAT" ] && \
+   [ "$IT_CHAT" != "Aucun document pertinent trouvé pour répondre à cette question." ]; then
+    pass "IT can access the document"
 else
-    fail "Department filtering"
+    fail "IT can access the document"
+fi
+
+# --------------------------------------------------
+# 5. DIRECTION can access the document
+# --------------------------------------------------
+
+DIRECTION_CHAT=$(curl -s \
+    -X POST "$BASE_URL/api/chat" \
+    -H "Authorization: Bearer $DIRECTION_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "message":"Que permet de faire QuadGPT ?"
+    }')
+
+if [ -n "$DIRECTION_CHAT" ] && \
+   [ "$DIRECTION_CHAT" != "Aucun document pertinent trouvé pour répondre à cette question." ]; then
+    pass "DIRECTION can access the document"
+else
+    fail "DIRECTION can access the document"
+fi
+
+# --------------------------------------------------
+# 6. RH cannot access the document
+# --------------------------------------------------
+
+RH_CHAT=$(curl -s \
+    -X POST "$BASE_URL/api/chat" \
+    -H "Authorization: Bearer $RH_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "message":"Que permet de faire QuadGPT ?"
+    }')
+
+if [ "$RH_CHAT" = '{"response":"Aucun document pertinent trouvé pour répondre à cette question."}' ]; then
+    pass "RH cannot access the document"
+else
+    fail "RH cannot access the document"
+fi
+
+# --------------------------------------------------
+# 7. Client cannot override department
+# --------------------------------------------------
+
+IT_FAKE_DEPARTMENT=$(curl -s \
+    -X POST "$BASE_URL/api/chat" \
+    -H "Authorization: Bearer $IT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "message":"Que permet de faire QuadGPT ?",
+        "department":"RH"
+    }')
+
+if [ -n "$IT_FAKE_DEPARTMENT" ] && \
+   [ "$IT_FAKE_DEPARTMENT" != '{"response":"Aucun document pertinent trouvé pour répondre à cette question."}' ]; then
+    pass "Client cannot override department"
+else
+    fail "Client cannot override department"
 fi
 
 # --------------------------------------------------

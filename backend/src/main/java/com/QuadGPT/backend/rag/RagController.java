@@ -1,7 +1,11 @@
 package com.QuadGPT.backend.rag;
 
+import java.util.Set;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.QuadGPT.backend.department.Department;
 
 @RestController
 @RequestMapping("/api/rag")
@@ -21,27 +25,41 @@ public class RagController {
         this.pdfExtractionService = pdfExtractionService;
     }
 
-    public record IngestRequest(String name, String text, String department) {}
-    public record AskRequest(String question, String department) {}
+    public record IngestRequest(
+            String name,
+            String text,
+            Set<Department> departments
+    ) {}
+
+    public record AskRequest(String question) {}
 
     @PostMapping("/ingest")
     public String ingest(@RequestBody IngestRequest request) {
-        ingestionService.ingest(request.name(), request.text(), request.department());
+
+        ingestionService.ingest(
+                request.name(),
+                request.text(),
+                request.departments()
+        );
+
         return "Document ingéré : " + request.name();
     }
 
     @PostMapping("/ingest-file")
     public String ingestFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "department", required = false) String department
+            @RequestParam(value = "departments", required = false)
+            Set<Department> departments
     ) {
-        String text = pdfExtractionService.extractText(file);
-        ingestionService.ingest(file.getOriginalFilename(), text, department);
-        return "Fichier ingéré : " + file.getOriginalFilename();
-    }
 
-    @PostMapping("/ask")
-    public String ask(@RequestBody AskRequest request) {
-        return ragService.ask(request.question(), request.department());
+        String text = pdfExtractionService.extractText(file);
+
+        ingestionService.ingest(
+                file.getOriginalFilename(),
+                text,
+                departments
+        );
+
+        return "Fichier ingéré : " + file.getOriginalFilename();
     }
 }

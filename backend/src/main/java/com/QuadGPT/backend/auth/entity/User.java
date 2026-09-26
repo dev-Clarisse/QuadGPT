@@ -1,6 +1,7 @@
 package com.QuadGPT.backend.auth.entity;
 
 import jakarta.persistence.*;
+import com.QuadGPT.backend.department.Department;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +16,10 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Department department;
 
     public Long getId() {
         return id;
@@ -34,5 +39,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
     }
 }

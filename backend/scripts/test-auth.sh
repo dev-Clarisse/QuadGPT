@@ -26,11 +26,12 @@ echo
 
 TEST_EMAIL="autotest-$(date +%s)@example.com"
 TEST_PASSWORD="password123"
+DEPARTMENT="IT"
 
 REGISTER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST "$BASE_URL/api/auth/register" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}")
+    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\",\"department\":\"$DEPARTMENT\"}")
 
 if [ "$REGISTER_STATUS" = "200" ]; then
     pass "Register"
@@ -45,7 +46,7 @@ fi
 DUPLICATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST "$BASE_URL/api/auth/register" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}")
+    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\",\"department\":\"$DEPARTMENT\"}")
 
 if [ "$DUPLICATE_STATUS" = "409" ]; then
     pass "Duplicate register rejected"

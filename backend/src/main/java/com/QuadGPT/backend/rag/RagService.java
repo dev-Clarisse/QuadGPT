@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.QuadGPT.backend.department.Department;
 import com.QuadGPT.backend.llm.LlmClientService;
 
 @Service
@@ -23,9 +24,16 @@ public class RagService {
         this.llmClientService = llmClientService;
     }
 
-    public String ask(String question, String department) {
+    public String ask(String question, Department department) {
+
         float[] questionEmbedding = embeddingService.embed(question);
-        List<String> relevantChunks = chunkRepository.findSimilarChunks(questionEmbedding, 3, department);
+
+        List<String> relevantChunks =
+                chunkRepository.findSimilarChunks(
+                        questionEmbedding,
+                        3,
+                        department.name()
+                );
 
         if (relevantChunks.isEmpty()) {
             return "Aucun document pertinent trouvé pour répondre à cette question.";
