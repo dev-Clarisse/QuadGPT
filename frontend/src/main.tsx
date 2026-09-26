@@ -7,20 +7,20 @@ import system from './theme/theme.ts'
 
 export function MainApp() {
   const [session, setSession] = useState<{ username: string; token: string } | null>(() => {
-    const username = localStorage.getItem('currentUser')
-    const token = localStorage.getItem('authToken')
+    const username = sessionStorage.getItem('currentUser')
+    const token = sessionStorage.getItem('authToken')
     return username && token ? { username, token } : null
   });
 
   const handleLogin = (username: string, token: string) => {
-    localStorage.setItem('currentUser', username)
-    localStorage.setItem('authToken', token)
+    sessionStorage.setItem('currentUser', username)
+    sessionStorage.setItem('authToken', token)
     setSession({ username, token })
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser')
-    localStorage.removeItem('authToken')
+    sessionStorage.removeItem('currentUser')
+    sessionStorage.removeItem('authToken')
     setSession(null)
   };
 
