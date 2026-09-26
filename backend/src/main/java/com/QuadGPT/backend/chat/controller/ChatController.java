@@ -21,7 +21,10 @@ public class ChatController {
     public ResponseEntity<ChatResponse> chat(
             @Valid @RequestBody ChatRequest request
     ) {
-        String response = chatService.processMessage(request.getMessage());
+        String response = chatService.processMessage(
+                request.getMessage(),
+                request.getDepartment()
+        );
 
         return ResponseEntity.ok(
                 new ChatResponse(response)
