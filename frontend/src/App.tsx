@@ -45,20 +45,25 @@ const App: React.FC<AppProps> = ({ username, accessToken, onLogout }) => {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/test/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain',
+
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: userText,
+        body: JSON.stringify({
+          message: userText,
+        }),
       })
 
       if (!response.ok) {
         throw new Error((await response.text()) || 'The message could not be sent.')
       }
 
-      const assistantResponse = await response.text()
+      const data = (await response.json()) as { response: string }
+      const assistantResponse = data.response
+
       setPreviousMessages((prev) => [
         ...prev,
         { title, role: 'assistant', content: assistantResponse },
@@ -97,6 +102,7 @@ const App: React.FC<AppProps> = ({ username, accessToken, onLogout }) => {
       <ChatArea
         previousMessages={previousMessages}
         currentTitle={currentTitle}
+        accessToken={accessToken}
         messageContent={messageContent}
         setMessageContent={setMessageContent}
         handleSendMessage={sendMessage}

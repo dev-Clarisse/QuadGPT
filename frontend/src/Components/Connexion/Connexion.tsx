@@ -1,31 +1,50 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Bot } from 'lucide-react';
+import { Eye, EyeOff, Bot, ChevronDown, Building2 } from 'lucide-react';
 import '../../index.css';
 
 interface ConnexionProps {
   onLogin: (username: string, token: string) => void;
 }
 
+const DEPARTMENTS = [
+  { value: 'RH', label: 'Human Resources (HR)' },
+  { value: 'FINANCE', label: 'Finance & Accounting' },
+  { value: 'IT', label: 'IT & Engineering' },
+  { value: 'MARKETING', label: 'Marketing & Communication' },
+  { value: 'DIRECTION', label: 'Management & Executive' },
+  { value: 'SALES', label: 'Sales & Business Development' },
+  { value: 'SUPPORT', label: 'Customer Support' },
+] as const;
+
 function Connexion({ onLogin }: ConnexionProps) {
   const [formData, setFormData] = useState({ login: '', password: '' });
+  const [department, setDepartment] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'department') {
+      setDepartment(value);
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const switchMode = () => {
     setIsRegistering((prev) => !prev);
     setFormData({ login: '', password: '' });
+    setDepartment('');
     setConfirmation('');
     setError('');
     setSuccess(false);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -33,24 +52,31 @@ function Connexion({ onLogin }: ConnexionProps) {
     setError('');
 
     if (isRegistering) {
+      if (!department) {
+        setError('Please select a department.');
+        return;
+      }
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+      }
       if (formData.password !== confirmation) {
-        setError('The passwords do not match.');
+        setError('Passwords do not match.');
         return;
       }
     }
 
     setIsSubmitting(true);
     try {
-      const credentials = JSON.stringify({
-        email: formData.login,
-        password: formData.password,
-      });
-
       if (isRegistering) {
         const registerResponse = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: credentials,
+          body: JSON.stringify({
+            email: formData.login,
+            password: formData.password,
+            department,
+          }),
         });
 
         if (!registerResponse.ok) {
@@ -63,7 +89,10 @@ function Connexion({ onLogin }: ConnexionProps) {
       const loginResponse = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: credentials,
+        body: JSON.stringify({
+          email: formData.login,
+          password: formData.password,
+        }),
       });
 
       if (!loginResponse.ok) {
@@ -91,60 +120,67 @@ function Connexion({ onLogin }: ConnexionProps) {
   };
 
   return (
-    <div className="connexion-wrapper" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-
-
-      <header style={{
-        position: 'absolute',
-        top: '20px',
-        left: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        <div style={{
-          backgroundColor: '#aa3bff',
-          borderRadius: '10px',
-          padding: '6px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ffffff'
-        }}>
+    <div className="connexion-wrapper">
+      <header className="connexion-header">
+        <div className="connexion-logo-icon">
           <Bot size={22} />
         </div>
-        <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.5px' }}>
-          QuadGPT
-        </span>
+        <span className="connexion-logo-text">QuadGPT</span>
       </header>
 
-
       <div className="connexion-card">
-        <h2>{isRegistering ? 'Create your account' : 'Welcome back'}</h2>
+        <h2>{isRegistering ? 'Create an account' : 'Welcome back'}</h2>
         <p className="connexion-subtitle">
-          {isRegistering ? 'Join QuadGPT in a few seconds' : 'Please sign in to your account'}
+          {isRegistering ? 'Join QuadGPT in just a few seconds' : 'Please sign in to your account'}
         </p>
 
         {error && <p className="connexion-message connexion-error">{error}</p>}
-        {success && <p className="connexion-message connexion-success">Connexion réussie !</p>}
+        {success && <p className="connexion-message connexion-success">Successfully connected!</p>}
 
         <form className="connexion-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="login">Email</label>
+            <label htmlFor="login">Email address</label>
             <input
               type="email"
               id="login"
               name="login"
-              placeholder="e.g. email@gmail.com"
+              placeholder="name@company.com"
               value={formData.login}
               onChange={handleChange}
               required
             />
           </div>
 
+          {isRegistering && (
+            <div className="form-group">
+              <label htmlFor="department">Department / Team</label>
+              <div className="select-wrapper">
+                <Building2 size={18} className="field-icon-left" />
+                <select
+                  id="department"
+                  name="department"
+                  value={department}
+                  onChange={handleChange}
+                  required
+                  className={!department ? 'placeholder-selected' : ''}
+                >
+                  <option value="" disabled>
+                    Select your department
+                  </option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.value} value={dept.value}>
+                      {dept.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={18} className="field-icon-right" />
+              </div>
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
@@ -152,22 +188,13 @@ function Connexion({ onLogin }: ConnexionProps) {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                style={{ width: '100%', paddingRight: '40px' }}
+                minLength={isRegistering ? 8 : undefined}
                 required
               />
               <button
                 type="button"
+                className="toggle-password-btn"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#8e8ea0',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -178,15 +205,26 @@ function Connexion({ onLogin }: ConnexionProps) {
           {isRegistering && (
             <div className="form-group">
               <label htmlFor="confirmation">Confirm password</label>
-              <input
-                type="password"
-                id="confirmation"
-                name="confirmation"
-                placeholder="••••••••"
-                value={confirmation}
-                onChange={(e) => setConfirmation(e.target.value)}
-                required
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmation"
+                  name="confirmation"
+                  placeholder="••••••••"
+                  value={confirmation}
+                  onChange={(e) => setConfirmation(e.target.value)}
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  className="toggle-password-btn"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
           )}
 

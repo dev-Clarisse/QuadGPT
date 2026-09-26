@@ -1,5 +1,5 @@
 import { Box, Flex, Heading, Text, Spinner } from '@chakra-ui/react'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { type Message } from '../../App'
 
 type MessagesProps = {
@@ -16,6 +16,14 @@ const Messages: React.FC<MessagesProps> = ({
   const currentChat = previousMessages.filter(
     (prev) => prev.title === currentTitle
   )
+
+  // 1. Déclarer la référence pour l'élément tout en bas
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  // 2. Déclencher le défilement automatique
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [currentChat, isLoading])
 
   return (
     <Flex direction="column" h="full" w="full" overflowY="auto" mb={4} gap={4}>
@@ -34,7 +42,6 @@ const Messages: React.FC<MessagesProps> = ({
         </Heading>
       )}
 
-     
       {currentTitle && (
         <Flex direction="column" gap={3} px={4}>
           {currentChat?.map((message, index) => {
@@ -62,7 +69,6 @@ const Messages: React.FC<MessagesProps> = ({
             )
           })}
 
-          
           {isLoading && (
             <Box
               alignSelf="flex-start"
@@ -81,6 +87,9 @@ const Messages: React.FC<MessagesProps> = ({
               <Spinner size="xs" color="#aa3bff" />
             </Box>
           )}
+
+          {/* 3. Ancre invisible placée tout en bas des messages */}
+          <div ref={messagesEndRef} />
         </Flex>
       )}
     </Flex>
