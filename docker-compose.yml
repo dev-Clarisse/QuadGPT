@@ -137,33 +137,24 @@ services:
 
     container_name: quadgpt-frontend
 
-    # Local-only frontend port for development.
-    # Binding to 127.0.0.1 prevents exposure to other devices
-    # while keeping compatibility with localhost:3000.
-    # Production traffic should go through Traefik.
-    ports:
-      - "127.0.0.1:3000:80"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  
-    environment:
-      - CHOKIDAR_USEPOLLING=true  
-
+    # Production traffic enters through Traefik.
+    # The frontend container itself does not need a direct host port.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=web"
 
-      # Frontend is the catch-all route, so it must have lower priority.
+      # Frontend is the catch-all route, so it must have lower priority
+      # than backend routes such as /api.
       - "traefik.http.routers.frontend.priority=1"
 
+      # The production frontend is served by Nginx on container port 80.
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
     networks:
       - app-network
 
     restart: unless-stopped
-
 
   # =========================================================
   # PostgreSQL + pgvector

@@ -1,90 +1,512 @@
 # QuadGPT
 
-QuadGPT is a self-hosted enterprise chatbot developed during the EPF Hackathon.
+QuadGPT is a self-hosted enterprise AI assistant developed during the EPF Hackathon.
 
-The project combines a React frontend, a Spring Boot backend, PostgreSQL with pgvector, MinIO object storage, a local LLM service based on Ollama, and Traefik as a reverse proxy.
+The project combines a React frontend, a Spring Boot backend, PostgreSQL with pgvector, MinIO object storage, local AI models served by Ollama, and Traefik as a reverse proxy.
 
-The main objective is to provide a self-hosted AI assistant while keeping the application infrastructure and local model execution under our control.
+The main objective is to provide an enterprise-oriented AI assistant while keeping the application infrastructure, internal documents and local model execution under our control.
 
 ---
 
 ## Architecture
 
+```text
 Browser
-  |
-  v
+   |
+   v
 Traefik
-  |
-  +--> Frontend (React + Nginx)
-  |
-  +--> Backend (Spring Boot)
-          |
-          +--> PostgreSQL + pgvector
-          +--> MinIO
-          +--> local-llm (Ollama)
+   |
+   +--> Frontend
+   |     |
+   |     +--> Development: Vite :5173
+   |     +--> Production: Nginx :80
+   |
+   +--> Backend (Spring Boot)
+           |
+           +--> PostgreSQL + pgvector
+           |      |
+           |      +--> Users
+           |      +--> Documents
+           |      +--> Embeddings
+           |
+           +--> MinIO
+           |
+           +--> Ollama
+                  |
+                  +--> qwen2.5:1.5b
+                  |     Text generation
+                  |
+                  +--> nomic-embed-text
+                        RAG embeddings
+```
+
+The frontend and backend are exposed through Traefik.
+
+Internal infrastructure services communicate through the Docker network and are not intended to be directly exposed publicly.
+
+---
+
+## Main features
+
+The current version of QuadGPT includes:
+
+- user registration and authentication
+- JWT-based authentication
+- department-based user access
+- authenticated chat
+- local LLM inference through Ollama
+- document ingestion for RAG
+- PDF text extraction
+- text chunking
+- embedding generation
+- PostgreSQL vector storage with pgvector
+- semantic document retrieval
+- department-aware RAG filtering
+- answers generated from retrieved document context
+- Docker-based local and production-style environments
+- Traefik reverse proxy
+- persistent PostgreSQL, MinIO and Ollama data
 
 ---
 
 ## Project structure
 
-- `backend/`
-  Spring Boot backend application.
+### `backend/`
 
-- `frontend/`
-  React frontend application served by Nginx.
+Spring Boot backend application.
 
-- `docker-compose.yml`
-  Defines all local Docker services and their communication:
-  frontend, backend, PostgreSQL, MinIO, local LLM, Adminer and Traefik.
+Main responsibilities:
 
-- `.env`
-  Private local configuration containing passwords and secrets.
-  This file must never be committed to Git.
+- authentication
+- JWT generation and validation
+- user management
+- chat API
+- RAG ingestion
+- document chunking
+- embedding generation
+- pgvector retrieval
+- communication with the local LLM
 
-- `.env.example`
-  Public template showing which environment variables are required.
+### `frontend/`
 
-- `scripts/init.ps1`
-  First-time initialization script.
-  It starts the Docker services and downloads the default local LLM model.
+React frontend application.
 
-- `Infos/Lancement_projet.md`
-  Quick instructions for local development.
+Development mode uses Vite.
 
-- `README.md`
-  Main project and infrastructure documentation.
+Production mode builds the React application and serves the generated static files through Nginx.
+
+### `docker-compose.yml`
+
+Defines the production-style Docker infrastructure:
+
+- frontend
+- backend
+- PostgreSQL + pgvector
+- MinIO
+- Ollama
+- Adminer
+- Traefik
+
+### `docker-compose.override.yml`
+
+Contains local development overrides.
+
+In development:
+
+- the frontend uses `Dockerfile.dev`
+- Vite listens on container port `5173`
+- `localhost:3000` forwards to Vite
+- source files are mounted for development
+
+### `.env`
+
+Private local configuration containing passwords and secrets.
+
+This file must never be committed to Git.
+
+### `.env.example`
+
+Public template showing which environment variables are required.
+
+Only placeholders must be stored in this file.
+
+### `scripts/init.ps1`
+
+First-time initialization script.
+
+It:
+
+- builds the Docker services
+- starts the complete environment
+- waits for Ollama to start
+- downloads the local chat model
+- downloads the RAG embedding model
 
 ---
 
 ## First-time setup
 
-After cloning the repository, create a local `.env` file based on `.env.example`.
+Clone the repository and create a local `.env` file based on `.env.example`.
 
-Example variables:
+Example:
 
-    DB_NAME=quadgpt
-    DB_USER=quadgpt
-    DB_PASSWORD=your_password
+```env
+DB_NAME=quadgpt
+DB_USER=quadgpt_user
+DB_PASSWORD=change_me
 
-    MINIO_ROOT_USER=admin
-    MINIO_ROOT_PASSWORD=your_password
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=change_me
 
-    JWT_SECRET=your_secret
+JWT_SECRET=change_me_with_a_long_random_secret
+```
 
-    GLM_API_KEY=
+`JWT_SECRET` must contain at least 32 characters.
 
-The real `.env` file contains secrets and must not be committed.
+The real `.env` file contains secrets and must never be committed.
 
 Then run:
 
-    .\scripts\init.ps1
+```powershell
+.\scripts\init.ps1
+```
 
-The initialization script:
+The initialization script automatically downloads:
 
-- builds the frontend and backend Docker images
-- starts all Docker services
-- waits for the local LLM service to start
-- downloads the default local model `qwen2.5:1.5b`
+```text
+qwen2.5:1.5b
+nomic-embed-text
+```
+
+---
+
+## Local AI models
+
+QuadGPT currently uses two Ollama models for different purposes.
+
+### `qwen2.5:1.5b`
+
+Used for:
+
+- text generation
+- final chatbot responses
+- RAG-based answers
+
+### `nomic-embed-text`
+
+Used for:
+
+- document embeddings
+- query embeddings
+- semantic retrieval with pgvector
+
+List installed models:
+
+```powershell
+docker exec quadgpt-local-llm ollama list
+```
+
+Expected models:
+
+```text
+qwen2.5:1.5b
+nomic-embed-text
+```
+
+The Ollama service is available internally at:
+
+```text
+http://local-llm:11434
+```
+
+The backend can also use Ollama's OpenAI-compatible interface:
+
+```text
+http://local-llm:11434/v1
+```
+
+Ollama is not directly exposed to the host network.
+
+---
+
+## Authentication
+
+QuadGPT uses JWT authentication.
+
+Main endpoints:
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
+
+After a successful login, the backend returns a JWT.
+
+Authenticated requests use:
+
+```http
+Authorization: Bearer <token>
+```
+
+The JWT secret is configured through:
+
+```text
+JWT_SECRET
+```
+
+and must remain outside source control.
+
+---
+
+## RAG
+
+QuadGPT includes a Retrieval-Augmented Generation pipeline.
+
+The workflow is:
+
+```text
+Document
+   |
+   v
+Text extraction
+   |
+   v
+Chunking
+   |
+   v
+nomic-embed-text
+   |
+   v
+Embedding
+   |
+   v
+PostgreSQL + pgvector
+   |
+   v
+Semantic search
+   |
+   v
+Relevant context
+   |
+   v
+qwen2.5:1.5b
+   |
+   v
+Final answer
+```
+
+### Document ingestion
+
+Text ingestion:
+
+```text
+POST /api/rag/ingest
+```
+
+PDF ingestion:
+
+```text
+POST /api/rag/ingest-file
+```
+
+Documents can be associated with one or more departments.
+
+The current retrieval logic filters documents according to the authenticated user's department.
+
+### Chat
+
+Authenticated chat endpoint:
+
+```text
+POST /api/chat
+```
+
+The chat service:
+
+1. receives the user's question
+2. identifies the authenticated user's department
+3. creates a query embedding
+4. searches the most relevant document chunks using pgvector
+5. builds a RAG context
+6. sends the context and question to the local LLM
+7. returns the generated answer
+
+---
+
+## PostgreSQL + pgvector
+
+Container:
+
+```text
+quadgpt-database
+```
+
+PostgreSQL stores:
+
+- users
+- documents
+- document departments
+- document chunks
+- vector embeddings
+
+Main RAG tables:
+
+```text
+document
+document_chunk
+document_department
+```
+
+User data is stored in:
+
+```text
+users
+```
+
+The database uses pgvector for vector similarity search.
+
+A Docker healthcheck verifies that PostgreSQL is ready before dependent services start.
+
+Persistent data is stored in a Docker volume.
+
+---
+
+## MinIO
+
+Container:
+
+```text
+quadgpt-minio
+```
+
+Technology:
+
+```text
+MinIO
+```
+
+MinIO provides S3-compatible object storage for the application.
+
+It can be used for:
+
+- uploaded documents
+- generated files
+- other binary application data
+
+Internal API:
+
+```text
+http://minio:9000
+```
+
+Local administration console:
+
+```text
+http://localhost:9001
+```
+
+The administration console is bound to localhost for development.
+
+---
+
+## Frontend
+
+### Development mode
+
+Local development uses Vite.
+
+Host access:
+
+```text
+http://localhost:3000
+```
+
+Docker mapping:
+
+```text
+127.0.0.1:3000
+    |
+    v
+frontend:5173
+```
+
+The development configuration is defined in:
+
+```text
+docker-compose.override.yml
+```
+
+### Production-style mode
+
+The production frontend is built with Vite and served by Nginx.
+
+Traffic follows:
+
+```text
+Browser
+   |
+   v
+Traefik :80
+   |
+   v
+Nginx :80
+   |
+   v
+React application
+```
+
+The production frontend does not require a direct host port.
+
+---
+
+## Traefik
+
+Container:
+
+```text
+quadgpt-traefik
+```
+
+Traefik acts as the main reverse proxy.
+
+Current routing:
+
+```text
+/       -> frontend
+/api    -> backend
+```
+
+The backend API route has higher priority than the frontend catch-all route.
+
+This prevents `/api` requests from being handled by the frontend.
+
+Main application entry point:
+
+```text
+http://localhost
+```
+
+---
+
+## Nginx
+
+The production frontend uses Nginx.
+
+Static files generated by Vite are served from:
+
+```text
+/usr/share/nginx/html
+```
+
+Unknown frontend routes fall back to:
+
+```text
+/index.html
+```
+
+This supports client-side routing in the React single-page application.
+
+Nginx can also forward `/api` traffic to the backend through the Docker network.
 
 ---
 
@@ -92,340 +514,165 @@ The initialization script:
 
 ### First-time initialization
 
-    .\scripts\init.ps1
+```powershell
+.\scripts\init.ps1
+```
 
-Starts the complete local environment and downloads the default local LLM model.
+Starts the environment and downloads both required Ollama models.
 
-### Start the project
+### Start development environment
 
-    docker compose up -d
+```powershell
+docker compose up -d
+```
 
-Starts the existing containers.
+Docker Compose automatically applies:
 
-### Rebuild after code changes
+```text
+docker-compose.override.yml
+```
 
-    docker compose up -d --build
+### Rebuild after changes
 
-Rebuilds the frontend and backend images before starting the services.
+```powershell
+docker compose up -d --build
+```
+
+### Start production-style environment locally
+
+```powershell
+docker compose -f docker-compose.yml up -d --build
+```
+
+This does not apply the development override.
+
+The frontend therefore runs through Nginx instead of Vite.
 
 ### Stop the project
 
-    docker compose down
+```powershell
+docker compose down
+```
 
-Stops the project containers without deleting persistent Docker volumes.
+This stops containers without deleting persistent volumes.
 
-### Check running containers
+Do not use:
 
-    docker ps
+```powershell
+docker compose down -v
+```
 
-Displays container status, names and exposed ports.
+unless persistent application data and downloaded Ollama models should intentionally be deleted.
 
-### Validate Docker Compose configuration
+### Check containers
 
-    docker compose config
+```powershell
+docker ps
+```
 
-Checks the final Docker Compose configuration and environment variable substitution.
+### Validate Compose configuration
+
+```powershell
+docker compose config
+```
 
 ---
 
-## Local development access
+## Local URLs
 
-The project supports both direct local development access and access through Traefik.
+### Main application through Traefik
 
-### Frontend
+```text
+http://localhost
+```
 
-Direct local development access:
+### Development frontend
 
-    http://localhost:3000
+```text
+http://localhost:3000
+```
 
-Main access through Traefik:
+### Backend direct debugging access
 
-    http://localhost
+```text
+http://localhost:8080
+```
 
-### Backend
+### Backend through Traefik
 
-Direct local debugging access:
-
-    http://localhost:8080
-
-Backend access through Traefik:
-
-    http://localhost/api
-
-The direct backend port is bound to `127.0.0.1`, which means it is only accessible from the developer's own computer.
-
-Every team member can use the same address:
-
-    http://localhost:8080
-
-No developer-specific IP address is required.
+```text
+http://localhost/api
+```
 
 ### Adminer
 
-    http://localhost:8082
-
-Adminer is used to inspect and manage the PostgreSQL database during development.
+```text
+http://localhost:8082
+```
 
 ### MinIO console
 
-    http://localhost:9001
-
-The MinIO administration console is exposed only locally for development.
-
----
-
-## Services
-
-### Frontend
-
-Container:
-
-    quadgpt-frontend
-
-Technology:
-
-    React + Nginx
-
-Role:
-
-- provides the user interface
-- serves the built React application
-- can be accessed directly on `localhost:3000`
-- can also be accessed through Traefik
+```text
+http://localhost:9001
+```
 
 ---
 
-### Backend
+## Docker networking
 
-Container:
+The application uses an internal Docker network:
 
-    quadgpt-backend
+```text
+app-network
+```
 
-Technology:
+Service-to-service communication uses Docker service names.
 
-    Spring Boot
+Examples:
 
-Role:
+```text
+backend:8080
+database:5432
+minio:9000
+local-llm:11434
+```
 
-- contains the application business logic
-- communicates with PostgreSQL
-- will communicate with MinIO
-- will communicate with the local LLM service
-- exposes backend APIs
-
-Direct development access:
-
-    http://localhost:8080
-
-Traefik API route:
-
-    http://localhost/api
-
----
-
-### PostgreSQL + pgvector
-
-Container:
-
-    quadgpt-database
-
-Technology:
-
-    PostgreSQL + pgvector
-
-Role:
-
-- stores application data
-- stores users and future conversations
-- supports vector embeddings for future RAG features
-- persists data using a Docker volume
-
-The database is not directly exposed publicly.
-
-A Docker healthcheck verifies that PostgreSQL is ready before dependent services start.
-
----
-
-### Adminer
-
-Container:
-
-    quadgpt-adminer
-
-Role:
-
-- provides a web interface for PostgreSQL
-- allows developers to inspect tables and stored data
-
-Local access:
-
-    http://localhost:8082
-
-The database server name inside Docker is:
-
-    database
-
----
-
-### MinIO
-
-Container:
-
-    quadgpt-minio
-
-Technology:
-
-    MinIO
-
-Role:
-
-- provides S3-compatible object storage
-- stores uploaded files and documents
-- can be used for future RAG document storage
-- can store generated files or other binary content
-
-Local administration console:
-
-    http://localhost:9001
-
-The MinIO API is intended to be used internally by the backend.
-
----
-
-### Local LLM
-
-Container:
-
-    quadgpt-local-llm
-
-Internal service name:
-
-    local-llm
-
-Technology:
-
-    Ollama
-
-Role:
-
-- runs open-weight language models locally
-- allows QuadGPT to perform local AI inference
-- avoids sending local inference requests to an external provider
-- supports models such as Qwen, Llama or Mistral
-
-The backend can communicate with the local LLM service through the internal Docker network:
-
-    http://local-llm:11434
-
-The default development model is:
-
-    qwen2.5:1.5b
-
-List installed models:
-
-    docker exec -it quadgpt-local-llm ollama list
-
-Download the default model manually:
-
-    docker exec -it quadgpt-local-llm ollama pull qwen2.5:1.5b
-
-Test local inference:
-
-    docker exec -it quadgpt-local-llm ollama run qwen2.5:1.5b "Réponds uniquement : QuadGPT fonctionne."
-
-Expected result:
-
-    QuadGPT fonctionne.
-
----
-
-### Traefik
-
-Container:
-
-    quadgpt-traefik
-
-Technology:
-
-    Traefik
-
-Role:
-
-- acts as the reverse proxy
-- provides a single application entry point
-- routes frontend and backend traffic
-- discovers Docker services using container labels
-
-Current routing:
-
-    /      -> frontend
-    /api   -> backend
-
-The backend `/api` route has a higher priority than the frontend catch-all route.
-
-This prevents `/api` requests from being handled by the frontend Nginx server.
-
----
-
-## Environment variables
-
-The project uses `.env` for local secrets and configuration.
-
-The public template is:
-
-    .env.example
-
-The real local configuration is:
-
-    .env
-
-The `.env` file must never be committed because it can contain:
-
-- database credentials
-- MinIO credentials
-- JWT secrets
-- external LLM API keys
-
-Example values in `.env.example` must use placeholders such as:
-
-    change_me
+Internal services do not need public IP addresses.
 
 ---
 
 ## Security principles
 
-The current local infrastructure follows several basic security principles:
+The current infrastructure applies the following security principles:
 
 - secrets are stored outside source code
 - `.env` is excluded from Git
-- PostgreSQL is not directly exposed to the host network
-- the local LLM service is not directly exposed
-- MinIO API traffic remains internal
-- frontend and backend production-style traffic goes through Traefik
-- backend and frontend direct development ports are bound to `127.0.0.1`
-- internal services communicate through a Docker network
-- Docker volumes are used for persistent data
-- the Docker socket mounted into Traefik is read-only
+- `.env.example` contains placeholders only
+- JWT tokens are signed using a secret stored in the environment
+- PostgreSQL direct development access is bound to `127.0.0.1`
+- backend direct debugging access is bound to `127.0.0.1`
+- Adminer is bound to `127.0.0.1`
+- MinIO administration is bound to `127.0.0.1`
+- Ollama is not directly exposed to the host
+- production-style application traffic goes through Traefik
+- internal services communicate through the Docker network
+- persistent data is stored in Docker volumes
+- the Docker socket used by Traefik is mounted read-only
+- production passwords and JWT secrets must use strong random values
+
+Production environments must not reuse development passwords.
 
 ---
 
 ## Persistent data
 
-The project uses Docker volumes to preserve important data between container recreations.
-
-Main persistent volumes:
+Persistent Docker volumes are used for:
 
 - PostgreSQL data
-- MinIO files
-- local LLM models
+- MinIO data
+- Ollama models
 
-This means downloaded models and stored data are not lost when containers are recreated.
-
-Do not use:
-
-    docker compose down -v
-
-unless you intentionally want to delete persistent project data.
+This means database content and downloaded models survive normal container recreation.
 
 ---
 
@@ -433,98 +680,186 @@ unless you intentionally want to delete persistent project data.
 
 ### Backend logs
 
-    docker logs quadgpt-backend --tail 100
+```powershell
+docker logs quadgpt-backend --tail 100
+```
 
-Useful for diagnosing:
+Useful for:
 
 - Spring Boot startup errors
-- database connection problems
+- JWT configuration problems
+- database connection errors
 - application exceptions
 
 ### Frontend logs
 
-    docker logs quadgpt-frontend --tail 100
+```powershell
+docker logs quadgpt-frontend --tail 100
+```
 
-Useful for diagnosing Nginx or frontend container problems.
+Useful for:
+
+- Vite startup issues
+- Nginx errors
+- static file problems
 
 ### Traefik logs
 
-    docker logs quadgpt-traefik --tail 100
+```powershell
+docker logs quadgpt-traefik --tail 100
+```
 
-Useful for diagnosing routing or Docker provider problems.
+Useful for routing and Docker provider problems.
 
-### PostgreSQL status
+### Installed Ollama models
 
-    docker ps
+```powershell
+docker exec quadgpt-local-llm ollama list
+```
 
-The database should show:
+### PostgreSQL tables
 
-    healthy
-
-### Local LLM models
-
-    docker exec -it quadgpt-local-llm ollama list
+```powershell
+docker exec -it quadgpt-database psql -U quadgpt_user -d quadgpt -c "\dt"
+```
 
 ---
 
-## Current infrastructure status
+## Validated local workflow
 
-The following components have been validated locally:
+The following complete workflow has been tested locally:
 
-- Traefik reverse proxy
+```text
+User registration
+      |
+      v
+Login
+      |
+      v
+JWT
+      |
+      v
+React frontend
+      |
+      v
+/api/chat
+      |
+      v
+Spring Boot
+      |
+      v
+RAG retrieval
+      |
+      v
+PostgreSQL + pgvector
+      |
+      v
+Relevant document context
+      |
+      v
+Ollama / qwen2.5:1.5b
+      |
+      v
+Generated answer
+```
+
+A RAG test document was successfully:
+
+- ingested
+- embedded using `nomic-embed-text`
+- stored in PostgreSQL
+- retrieved through pgvector
+- filtered by department
+- used as context for the local LLM
+
+The complete frontend-to-RAG-to-LLM workflow has been validated in both:
+
+- Vite development mode
+- production-style Nginx + Traefik mode
+
+---
+
+## Current status
+
+Validated components:
+
 - React frontend
+- Vite development environment
+- Nginx production frontend
 - Spring Boot backend
-- PostgreSQL + pgvector
-- PostgreSQL healthcheck
-- Adminer database access
-- MinIO object storage
-- local LLM service
-- `qwen2.5:1.5b` local model
-- local LLM inference
-- persistent Docker volumes
-- internal Docker network
-- direct frontend development access on port 3000
-- direct backend debugging access on port 8080
+- user registration
+- login
+- JWT authentication
+- PostgreSQL
+- pgvector
+- document ingestion
+- PDF extraction
+- document chunking
+- `nomic-embed-text`
+- vector storage
+- semantic retrieval
+- department filtering
+- authenticated chat
+- local Ollama inference
+- `qwen2.5:1.5b`
+- Traefik reverse proxy
+- Docker internal networking
+- persistent volumes
+- development and production-style Docker configurations
 
 ---
 
-## Current local URLs
+## Remaining infrastructure work
 
-Frontend:
+Before final production deployment, the main remaining infrastructure tasks are:
 
-    http://localhost:3000
-
-Frontend through Traefik:
-
-    http://localhost
-
-Backend:
-
-    http://localhost:8080
-
-Backend through Traefik:
-
-    http://localhost/api
-
-Adminer:
-
-    http://localhost:8082
-
-MinIO:
-
-    http://localhost:9001
+- verify the final VPS deployment
+- configure or verify production secrets
+- configure HTTPS if available
+- verify CI/CD deployment
+- complete final production security checks
+- verify MinIO integration with the final document workflow if required
 
 ---
 
-## Next infrastructure steps
+## Team workflow
 
-Planned infrastructure improvements:
+Development follows a branch-based workflow:
 
-- deploy QuadGPT on an Internet-accessible server
-- configure HTTPS
-- configure production secrets
-- connect backend business logic to the local LLM service
-- connect backend file handling to MinIO
-- complete RAG integration with pgvector
-- add CI/CD
-- perform a final security review
+```text
+feature/fix branch
+      |
+      v
+Pull Request
+      |
+      v
+develop
+      |
+      v
+validation
+      |
+      v
+main
+      |
+      v
+production
+```
+
+Infrastructure changes should be tested locally before being merged into `develop`.
+
+---
+
+## QuadGPT
+
+QuadGPT demonstrates how an enterprise-oriented AI assistant can combine:
+
+- local AI inference
+- RAG
+- vector search
+- authentication
+- containerized infrastructure
+- reverse proxy routing
+- persistent data
+- controlled internal networking
+
+while keeping the core infrastructure and local model execution under the team's control.
