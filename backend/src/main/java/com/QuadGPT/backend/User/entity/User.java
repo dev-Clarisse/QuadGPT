@@ -1,6 +1,7 @@
-package com.QuadGPT.backend.auth.entity;
+package com.QuadGPT.backend.User.entity;
 
 import jakarta.persistence.*;
+
 import com.QuadGPT.backend.department.Department;
 
 @Entity
@@ -20,6 +21,19 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Department department;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
+    public User() {}
+
+        public User(String email, String password, Department department, Role role) {
+        this.email = email;
+        this.password = password;
+        this.department = department;
+        this.role = role;
+    }
 
     public Long getId() {
         return id;
@@ -48,4 +62,6 @@ public class User {
     public void setDepartment(Department department) {
         this.department = department;
     }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

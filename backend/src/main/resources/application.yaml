@@ -26,3 +26,9 @@ zai:
 embedding:
   base-url: '${EMBEDDING_BASE_URL:http://local-llm:11434}'
   model: '${EMBEDDING_MODEL:nomic-embed-text}'
+
+app:
+  admin:
+    email: ${ADMIN_EMAIL:admin@quadgpt.com}
+    password: ${ADMIN_PASSWORD:ChangeMe123!}
+    department: ${ADMIN_DEPARTMENT:IT}

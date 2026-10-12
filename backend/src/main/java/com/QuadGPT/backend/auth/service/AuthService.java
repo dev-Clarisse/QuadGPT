@@ -1,14 +1,18 @@
 package com.QuadGPT.backend.auth.service;
 
 import com.QuadGPT.backend.auth.dto.RegisterRequest;
+import com.QuadGPT.backend.User.entity.Role;
+import com.QuadGPT.backend.User.entity.User;
+import com.QuadGPT.backend.User.repository.UserRepository;
 import com.QuadGPT.backend.auth.dto.LoginRequest;
 import com.QuadGPT.backend.auth.dto.LoginResponse;
-import com.QuadGPT.backend.auth.entity.User;
-import com.QuadGPT.backend.auth.repository.UserRepository;
 import com.QuadGPT.backend.auth.exception.EmailAlreadyRegisteredException;
 import com.QuadGPT.backend.auth.exception.InvalidCredentialsException;
+
 import org.springframework.stereotype.Service;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -17,37 +21,43 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
 
+    @Transactional
     public void register(RegisterRequest request) {
-
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EmailAlreadyRegisteredException();
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Email already in use: " + request.email());
         }
-
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setDepartment(request.getDepartment());
-
+        User user = new User(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.department(),
+                Role.USER // 🔒 toujours USER via /register
+        );
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(InvalidCredentialsException::new);
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException();
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
-
-        return new LoginResponse(token);
+        String token = jwtService.generateToken(user);
+        return new LoginResponse(
+                token,
+                user.getEmail(),
+                user.getRole().name(),
+                user.getDepartment().name()
+        );
     }
 }

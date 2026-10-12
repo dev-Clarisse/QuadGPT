@@ -1,11 +1,13 @@
-package com.QuadGPT.backend.auth.repository;
+package com.QuadGPT.backend.User.repository;
 
-import com.QuadGPT.backend.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.QuadGPT.backend.User.entity.User;
 
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

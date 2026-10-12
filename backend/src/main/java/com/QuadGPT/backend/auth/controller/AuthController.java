@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
+        private final AuthService authService;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -20,17 +20,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
-
         authService.register(request);
-
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-
-        LoginResponse response = authService.login(request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.login(request));
     }
 }

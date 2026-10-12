@@ -1,8 +1,9 @@
 package com.QuadGPT.backend.chat.service;
 
-import com.QuadGPT.backend.auth.entity.User;
-import com.QuadGPT.backend.auth.repository.UserRepository;
+import com.QuadGPT.backend.User.entity.User;
+import com.QuadGPT.backend.User.repository.UserRepository;
 import com.QuadGPT.backend.rag.RagService;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

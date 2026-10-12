@@ -83,7 +83,21 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+
+      
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@quadgpt.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe123!}
+      ADMIN_DEPARTMENT: ${ADMIN_DEPARTMENT:-IT}
+
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
 
       # Internal URL used by the backend to call the local LLM service.
       OLLAMA_BASE_URL: http://local-llm:11434
@@ -108,8 +122,13 @@ services:
       minio:
         condition: service_started
 
-    # Local-only port for backend development and debugging.
-    # Production traffic should still go through Traefik.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s       
+
     ports:
       - "127.0.0.1:8080:8080"
       
