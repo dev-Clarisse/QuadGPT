@@ -29,6 +29,6 @@ embedding:
 
 app:
   admin:
-    email: ${ADMIN_EMAIL:admin@quadgpt.com}
-    password: ${ADMIN_PASSWORD:ChangeMe123!}
-    department: ${ADMIN_DEPARTMENT:IT}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+    department: ${ADMIN_DEPARTMENT}
