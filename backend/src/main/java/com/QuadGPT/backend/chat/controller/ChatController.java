@@ -21,12 +21,11 @@ public class ChatController {
     public ResponseEntity<ChatResponse> chat(
             @Valid @RequestBody ChatRequest request
     ) {
-        String response = chatService.processMessage(
-                request.getMessage()
-        );
-
         return ResponseEntity.ok(
-                new ChatResponse(response)
+                chatService.processMessage(
+                        request.getMessage(),
+                        request.getConversationId()
+                )
         );
     }
 }

@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.rag;
+package com.QuadGPT.backend.rag.repository;
 
 import java.util.List;
 

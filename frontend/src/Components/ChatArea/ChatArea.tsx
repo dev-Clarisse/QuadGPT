@@ -18,8 +18,10 @@ import {
   FiAlertCircle,
   FiX,
   FiFile,
+  FiFolder,
 } from 'react-icons/fi'
 import { type Message } from '../../App'
+import { DEPARTMENTS } from '../../departments'
 import Messages from './Messages'
 
 type ChatAreaProps = {
@@ -30,17 +32,9 @@ type ChatAreaProps = {
   handleSendMessage: () => void
   previousMessages: Message[]
   isLoading?: boolean
+  canUploadDocuments: boolean
+  onOpenDocuments: () => void
 }
-
-const DEPARTMENTS = [
-  { value: 'RH', label: 'Human Resources (HR)' },
-  { value: 'FINANCE', label: 'Finance & Accounting' },
-  { value: 'IT', label: 'IT & Engineering' },
-  { value: 'MARKETING', label: 'Marketing & Com' },
-  { value: 'DIRECTION', label: 'Management' },
-  { value: 'SALES', label: 'Sales' },
-  { value: 'SUPPORT', label: 'Customer Support' },
-]
 
 const ChatArea: React.FC<ChatAreaProps> = ({
   currentTitle,
@@ -50,6 +44,8 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   handleSendMessage,
   previousMessages,
   isLoading,
+  canUploadDocuments,
+  onOpenDocuments,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -134,7 +130,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
 
       {/* Input container */}
       <Box px="16px" maxW="900px" w="full" mx="auto">
-        {/* Document Ingestion Toolbar */}
+        {/* Documents Toolbar */}
         <Flex
           bg="#202123"
           p="8px 12px"
@@ -145,56 +141,86 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           justify="space-between"
           gap="12px"
         >
-          <HStack gap="10px" flex="1">
-            <FiFileText size={16} color="#aa3bff" />
-            <Text fontSize="13px" fontWeight="500" color="#ececf1">
-              Ingest Document:
-            </Text>
+          {canUploadDocuments ? (
+            <HStack gap="10px" flex="1">
+              <FiFileText size={16} color="#aa3bff" />
+              <Text fontSize="13px" fontWeight="500" color="#ececf1">
+                Ingest Document:
+              </Text>
 
-            {/* Department Selection */}
-            <NativeSelect.Root size="sm" maxW="230px">
-              <NativeSelect.Field
-                placeholder="Select Target Department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                bg="#343541"
-                color="#ececf1"
-                borderColor={!department ? 'rgba(170, 59, 255, 0.4)' : 'rgba(255, 255, 255, 0.15)'}
-                borderRadius="6px"
-                fontSize="12px"
-                _hover={{ borderColor: '#aa3bff' }}
-                _focus={{ borderColor: '#aa3bff', boxShadow: '0 0 0 1px #aa3bff' }}
-              >
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept.value} value={dept.value} style={{ background: '#343541', color: '#ececf1' }}>
-                    {dept.label}
-                  </option>
-                ))}
-              </NativeSelect.Field>
-            </NativeSelect.Root>
+              {/* Department Selection */}
+              <NativeSelect.Root size="sm" maxW="230px">
+                <NativeSelect.Field
+                  placeholder="Select Target Department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  bg="#343541"
+                  color="#ececf1"
+                  borderColor={!department ? 'rgba(170, 59, 255, 0.4)' : 'rgba(255, 255, 255, 0.15)'}
+                  borderRadius="6px"
+                  fontSize="12px"
+                  _hover={{ borderColor: '#aa3bff' }}
+                  _focus={{ borderColor: '#aa3bff', boxShadow: '0 0 0 1px #aa3bff' }}
+                >
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.value} value={dept.value} style={{ background: '#343541', color: '#ececf1' }}>
+                      {dept.label}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+              </NativeSelect.Root>
+            </HStack>
+          ) : (
+            <HStack gap="10px" flex="1">
+              <FiFolder size={16} color="#aa3bff" />
+              <Text fontSize="13px" fontWeight="500" color="#ececf1">
+                Your department's documents
+              </Text>
+            </HStack>
+          )}
+
+          <HStack gap="8px">
+            {/* Documents Library Button */}
+            <IconButton
+              aria-label="Browse documents"
+              title="Browse documents"
+              size="sm"
+              onClick={onOpenDocuments}
+              bg="#444654"
+              color="#ececf1"
+              _hover={{ bg: '#565869' }}
+              px="12px"
+            >
+              <FiFolder size={14} />
+            </IconButton>
+
+            {canUploadDocuments && (
+              <>
+                {/* Upload Button */}
+                <IconButton
+                  aria-label="Upload document"
+                  title="Upload document"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || !department}
+                  bg={department ? '#aa3bff' : '#444654'}
+                  color="#ffffff"
+                  _hover={{ bg: department ? '#9322eb' : '#444654' }}
+                  px="12px"
+                >
+                  {isUploading ? <Spinner size="xs" /> : <FiPaperclip size={14} />}
+                </IconButton>
+
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  display="none"
+                  onChange={handleFileUpload}
+                />
+              </>
+            )}
           </HStack>
-
-          {/* Upload Button */}
-          <IconButton
-            aria-label="Upload document"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || !department}
-            bg={department ? '#aa3bff' : '#444654'}
-            color="#ffffff"
-            _hover={{ bg: department ? '#9322eb' : '#444654' }}
-            px="12px"
-          >
-            {isUploading ? <Spinner size="xs" /> : <FiPaperclip size={14} />}
-          </IconButton>
-
-          <Input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf,.pdf"
-            display="none"
-            onChange={handleFileUpload}
-          />
         </Flex>
 
         {/* Prompt Input Box */}

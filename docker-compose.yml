@@ -107,6 +107,10 @@ services:
       ZAI_BASE_URL: ${ZAI_BASE_URL:-http://local-llm:11434/v1}
       ZAI_MODEL: ${ZAI_MODEL:-qwen2.5:1.5b}
 
+      # Embedding model used for RAG ingestion and retrieval.
+      # Must produce 768-dimensional vectors (see V1 Flyway migration).
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+
       # MinIO internal endpoint
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
@@ -116,8 +120,9 @@ services:
     depends_on:
       database:
         condition: service_healthy
-      local-llm:
-        condition: service_started
+      # Models must be downloaded before the backend can embed or chat.
+      ollama-init:
+        condition: service_completed_successfully
       minio:
         condition: service_started
 
@@ -266,7 +271,46 @@ services:
     networks:
       - app-network
 
+    # Ollama server is ready when its API answers.
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
     restart: unless-stopped
+
+
+  # =========================================================
+  # Ollama model initializer
+  # One-shot job that pulls the chat and embedding models
+  # into the shared ollama-data volume, then exits.
+  # Pulls are skipped quickly when models are already present.
+  # =========================================================
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: quadgpt-ollama-init
+
+    # The ollama CLI talks to the local-llm server instead of a local one.
+    environment:
+      OLLAMA_HOST: http://local-llm:11434
+
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama pull ${ZAI_MODEL:-qwen2.5:1.5b} &&
+        ollama pull ${EMBEDDING_MODEL:-nomic-embed-text}
+
+    depends_on:
+      local-llm:
+        condition: service_healthy
+
+    networks:
+      - app-network
+
+    # Must not restart: it is expected to exit once models are pulled.
+    restart: "no"
 
 
 # =========================================================

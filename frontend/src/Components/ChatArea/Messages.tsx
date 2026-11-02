@@ -13,9 +13,8 @@ const Messages: React.FC<MessagesProps> = ({
   previousMessages,
   isLoading = false,
 }) => {
-  const currentChat = previousMessages.filter(
-    (prev) => prev.title === currentTitle
-  )
+  // previousMessages only holds the messages of the open conversation
+  const currentChat = previousMessages
 
   // 1. Déclarer la référence pour l'élément tout en bas
   const messagesEndRef = useRef<HTMLDivElement | null>(null)

@@ -5,5 +5,7 @@ public enum Department {
     FINANCE,
     IT,
     MARKETING,
-    DIRECTION
+    DIRECTION,
+    SALES,
+    SUPPORT
 }

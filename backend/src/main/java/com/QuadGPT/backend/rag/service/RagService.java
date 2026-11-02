@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.rag;
+package com.QuadGPT.backend.rag.service;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.QuadGPT.backend.department.Department;
 import com.QuadGPT.backend.llm.LlmClientService;
+import com.QuadGPT.backend.rag.repository.ChunkRepository;
 
 @Service
 public class RagService {

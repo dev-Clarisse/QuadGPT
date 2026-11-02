@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.rag;
+package com.QuadGPT.backend.rag.service;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;

@@ -41,11 +41,19 @@ public class Document {
     @Column(name = "created_at", nullable = false)
     private final LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "file_hash", unique = true, length = 64)
+    private String fileHash;
+
     public Document() {}
 
     public Document(String name, Set<Department> departments) {
+        this(name, departments, null);
+    }
+
+    public Document(String name, Set<Department> departments, String fileHash) {
         this.name = name;
-        this.departments = departments;
+        this.departments = departments == null ? new HashSet<>() : new HashSet<>(departments);
+        this.fileHash = fileHash;
     }
 
     public Long getId() {
@@ -62,5 +70,13 @@ public class Document {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
+    public void addDepartments(Set<Department> newDepartments) {
+        departments.addAll(newDepartments);
     }
 }
