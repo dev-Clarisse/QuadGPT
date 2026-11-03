@@ -23,6 +23,13 @@ Traefik
           +--> MinIO
           +--> local-llm (Ollama)
 
+Detailed diagrams and API tools:
+
+- [docs/architecture.md](docs/architecture.md): containers, backend layers, RAG and upload flows, CI/CD
+- [docs/database.md](docs/database.md): database schema (Flyway migrations V1 to V5)
+- Swagger UI: http://localhost:8080/api/swagger-ui.html (OpenAPI JSON: `/api/docs`)
+- [http/quadgpt.http](http/quadgpt.http): ready-to-run requests for the VS Code REST Client extension
+
 ---
 
 ## Project structure

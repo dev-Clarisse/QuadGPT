@@ -2,6 +2,7 @@ package com.QuadGPT.backend.chat.service;
 
 import java.util.List;
 
+import com.QuadGPT.backend.User.entity.Role;
 import com.QuadGPT.backend.User.entity.User;
 import com.QuadGPT.backend.User.repository.UserRepository;
 import com.QuadGPT.backend.chat.dto.ChatResponse;
@@ -49,9 +50,10 @@ public class ChatService {
                 ? null
                 : findOwnedConversation(conversationId, user);
 
+        // ADMIN can ask about every document, USER only about their department's documents.
         String answer = ragService.ask(
                 message,
-                user.getDepartment()
+                user.getRole() == Role.ADMIN ? null : user.getDepartment()
         );
 
         // Only persist once the answer is available, so a failed call leaves no half-saved exchange.
@@ -117,6 +119,7 @@ public class ChatService {
                 .getName();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+                // The token is still valid but the account was deleted in the meantime.
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown user"));
     }
 }

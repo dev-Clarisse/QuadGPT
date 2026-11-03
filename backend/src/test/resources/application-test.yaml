@@ -1,0 +1,20 @@
+# Profile used by integration tests. The database comes from Testcontainers,
+# and the LLM and embedding services are mocked, so their URLs are never called.
+zai:
+  api-key: test
+  base-url: http://localhost:1
+  model: test-model
+
+embedding:
+  base-url: http://localhost:1
+  model: test-embedding
+
+jwt:
+  secret: une-cle-secrete-de-test-d-au-moins-32-octets
+  expiration-ms: 3600000
+
+app:
+  admin:
+    email: admin@test.com
+    password: AdminPass123
+    department: IT

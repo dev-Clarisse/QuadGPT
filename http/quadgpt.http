@@ -1,0 +1,200 @@
+### QuadGPT API
+# Run these requests with the "REST Client" VS Code extension (humao.rest-client):
+# click "Send Request" above each request.
+#
+# 1. Start the project: docker compose up -d
+# 2. Create http/.env (ignored by git, never commit it) with the admin account of your root .env:
+#      ADMIN_EMAIL=...
+#      ADMIN_PASSWORD=...
+# 3. Run "Login admin" and "Login user" first: the following requests reuse their tokens.
+#
+# Swagger UI with the same endpoints: http://localhost:8080/api/swagger-ui.html
+
+@baseUrl = http://localhost:8080
+@adminEmail = {{$dotenv ADMIN_EMAIL}}
+@adminPassword = {{$dotenv ADMIN_PASSWORD}}
+@userEmail = rh.test@quadria.fr
+@userPassword = motdepasse
+
+@adminToken = {{loginAdmin.response.body.token}}
+@userToken = {{loginUser.response.body.token}}
+
+
+############################################################
+# Auth (public)
+############################################################
+
+### Register a USER (409 if the email already exists)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{userEmail}}",
+  "password": "{{userPassword}}",
+  "department": "RH"
+}
+
+### Login admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Login user
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userEmail}}",
+  "password": "{{userPassword}}"
+}
+
+### Login with a wrong password → 401
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userEmail}}",
+  "password": "wrong-password"
+}
+
+
+############################################################
+# Documents
+############################################################
+
+### Upload a PDF for the RH department (ADMIN only, 409 if already uploaded)
+POST {{baseUrl}}/api/rag/ingest-file
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=QuadGPTBoundary
+
+--QuadGPTBoundary
+Content-Disposition: form-data; name="departments"
+
+RH
+--QuadGPTBoundary
+Content-Disposition: form-data; name="file"; filename="RH.pdf"
+Content-Type: application/pdf
+
+< ../documents_entreprise/RH.pdf
+--QuadGPTBoundary--
+
+### Same upload by a USER → 403
+POST {{baseUrl}}/api/rag/ingest-file
+Authorization: Bearer {{userToken}}
+Content-Type: multipart/form-data; boundary=QuadGPTBoundary
+
+--QuadGPTBoundary
+Content-Disposition: form-data; name="departments"
+
+RH
+--QuadGPTBoundary
+Content-Disposition: form-data; name="file"; filename="RH.pdf"
+Content-Type: application/pdf
+
+< ../documents_entreprise/RH.pdf
+--QuadGPTBoundary--
+
+### List documents (USER: own department only, ADMIN: all)
+# @name documents
+GET {{baseUrl}}/api/documents
+Authorization: Bearer {{userToken}}
+
+### Download the first listed document (403 if it belongs to another department)
+GET {{baseUrl}}/api/documents/{{documents.response.body.$[0].id}}/file
+Authorization: Bearer {{userToken}}
+
+### Delete a document (ADMIN only) — change the id
+DELETE {{baseUrl}}/api/documents/1
+Authorization: Bearer {{adminToken}}
+
+
+############################################################
+# Chat
+############################################################
+
+### Ask a question in a new conversation
+# @name ask
+POST {{baseUrl}}/api/chat
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "message": "Qui dirige le département des ressources humaines ?"
+}
+
+### Follow-up question in the same conversation
+POST {{baseUrl}}/api/chat
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "message": "Combien de jours de télétravail sont autorisés ?",
+  "conversationId": {{ask.response.body.conversationId}}
+}
+
+### List my conversations
+GET {{baseUrl}}/api/conversations
+Authorization: Bearer {{userToken}}
+
+### Messages of the conversation
+GET {{baseUrl}}/api/conversations/{{ask.response.body.conversationId}}/messages
+Authorization: Bearer {{userToken}}
+
+### Delete the conversation
+DELETE {{baseUrl}}/api/conversations/{{ask.response.body.conversationId}}
+Authorization: Bearer {{userToken}}
+
+### Without a token → 401
+GET {{baseUrl}}/api/conversations
+
+
+############################################################
+# Users (ADMIN only)
+############################################################
+
+### List users
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{adminToken}}
+
+### Create a user with a role
+# @name createdUser
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "email": "finance.test@quadria.fr",
+  "password": "motdepasse",
+  "department": "FINANCE",
+  "role": "USER"
+}
+
+### Get the created user
+GET {{baseUrl}}/api/users/{{createdUser.response.body.id}}
+Authorization: Bearer {{adminToken}}
+
+### Delete the created user
+DELETE {{baseUrl}}/api/users/{{createdUser.response.body.id}}
+Authorization: Bearer {{adminToken}}
+
+### Unknown user → 404
+GET {{baseUrl}}/api/users/999999
+Authorization: Bearer {{adminToken}}
+
+### Same request with a USER token → 403
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{userToken}}
+
+
+############################################################
+# OpenAPI
+############################################################
+
+### OpenAPI description (JSON, can be imported into Postman)
+GET {{baseUrl}}/api/docs

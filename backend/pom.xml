@@ -98,6 +98,13 @@
 			<version>3.0.3</version>
 		</dependency>
 
+		<!-- Swagger UI and OpenAPI description, served under /api so it goes through Traefik and nginx -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.1</version>
+		</dependency>
+
 		<!-- Flyway -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -136,6 +143,20 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- Unit tests (*Test) run with `mvn test`; integration tests (*IT) need Docker
+			     for Testcontainers and run with `mvn verify`. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

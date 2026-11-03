@@ -1,0 +1,59 @@
+Guide du département informatique et ingénierie de l'entreprise Quadria
+
+Ce document est le guide officiel du département informatique et ingénierie de Quadria. Il explique le support informatique, la sécurité, les mots de passe, le matériel, les logiciels et les règles de développement.
+
+Présentation du département informatique de Quadria
+Le département informatique et ingénierie de Quadria est dirigé par Nicolas Dubois, directeur des systèmes d'information. Le département compte 45 personnes, dont une équipe support, une équipe infrastructure, une équipe sécurité et plusieurs équipes de développement.
+
+Support informatique de Quadria
+Pour tout problème informatique, les salariés de Quadria créent un ticket dans l'outil Quadria Support. Le support informatique est disponible du lundi au vendredi de 8 heures à 19 heures. En cas d'urgence, le support est joignable par téléphone au poste 4000.
+
+Le support informatique de Quadria traite les tickets selon leur priorité. Un incident bloquant est pris en charge en moins d'une heure. Un incident normal est pris en charge dans la journée. Une demande simple, comme l'installation d'un logiciel, est traitée sous trois jours ouvrés.
+
+Mots de passe chez Quadria
+Chez Quadria, un mot de passe doit contenir au moins 12 caractères, avec des majuscules, des minuscules et des chiffres. Le mot de passe doit être changé tous les 90 jours. Il est interdit de réutiliser l'un des cinq derniers mots de passe.
+
+Il est interdit de partager son mot de passe avec un collègue chez Quadria, même avec un membre du service informatique. Le service informatique de Quadria ne demandera jamais un mot de passe par courriel ou par téléphone.
+
+Si un salarié de Quadria oublie son mot de passe, il peut le réinitialiser lui même sur le portail Quadria Compte, ou demander une réinitialisation au support informatique.
+
+Double authentification chez Quadria
+La double authentification est obligatoire pour tous les comptes Quadria. Les salariés utilisent l'application Microsoft Authenticator sur leur téléphone pour valider chaque connexion depuis l'extérieur.
+
+Sécurité informatique chez Quadria
+Un salarié de Quadria qui reçoit un courriel suspect ne doit pas cliquer sur les liens ni ouvrir les pièces jointes. Il doit signaler le courriel avec le bouton Signaler dans la messagerie ou le transférer à l'équipe sécurité.
+
+Tout incident de sécurité chez Quadria, comme la perte d'un ordinateur, le vol d'un téléphone ou un virus, doit être signalé immédiatement au support informatique au poste 4000.
+
+Chez Quadria, l'écran de l'ordinateur doit être verrouillé dès que le salarié quitte son poste. Les clés USB personnelles sont interdites sur les ordinateurs de l'entreprise.
+
+VPN chez Quadria
+Pour accéder aux applications internes de Quadria depuis l'extérieur, le salarié doit se connecter au VPN de l'entreprise avec le logiciel GlobalProtect. Le VPN est obligatoire en télétravail et lors des déplacements.
+
+Matériel informatique chez Quadria
+Chaque nouveau salarié de Quadria reçoit un ordinateur portable, un casque et une souris. Les développeurs reçoivent en plus un deuxième écran. Les ordinateurs de Quadria sont remplacés tous les quatre ans.
+
+Un salarié de Quadria qui a besoin de matériel supplémentaire, comme un écran ou un clavier, fait une demande dans l'outil Quadria Support. La demande doit être validée par son manager.
+
+Les téléphones professionnels chez Quadria sont fournis aux commerciaux, aux managers et aux équipes d'astreinte.
+
+Logiciels chez Quadria
+Les salariés de Quadria utilisent Microsoft 365 pour la messagerie, les documents et les réunions. La messagerie instantanée de Quadria est Microsoft Teams. Les documents partagés sont stockés sur SharePoint.
+
+Chez Quadria, il est interdit d'installer un logiciel non autorisé. Pour obtenir un nouveau logiciel, le salarié fait une demande au support informatique, qui vérifie la licence et la sécurité.
+
+Intelligence artificielle chez Quadria
+Chez Quadria, il est interdit de copier des données confidentielles de l'entreprise ou des données clients dans un outil d'intelligence artificielle public. Les salariés doivent utiliser l'assistant interne QuadGPT, qui est hébergé par Quadria.
+
+Sauvegardes chez Quadria
+Les données des serveurs de Quadria sont sauvegardées chaque nuit. Les sauvegardes sont conservées pendant 30 jours. Les fichiers stockés sur SharePoint et OneDrive peuvent être restaurés pendant 90 jours.
+
+Règles de développement chez Quadria
+Les développeurs de Quadria utilisent GitLab pour gérer le code source. Toute modification de code passe par une demande de fusion relue par au moins un autre développeur avant d'être intégrée à la branche principale.
+
+Chez Quadria, les mises en production ont lieu le mardi et le jeudi. Aucune mise en production n'est autorisée le vendredi ni pendant les deux dernières semaines de décembre.
+
+Les applications de Quadria sont développées principalement en Java avec Spring Boot pour le backend et en React avec TypeScript pour le frontend. Les bases de données utilisées sont PostgreSQL.
+
+Astreinte informatique chez Quadria
+Une équipe d'astreinte informatique de Quadria est disponible le soir et le week end pour les incidents critiques sur les applications clients. Le numéro d'astreinte est communiqué aux managers.

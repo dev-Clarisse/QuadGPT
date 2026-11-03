@@ -1,0 +1,55 @@
+Guide du département commercial de l'entreprise Quadria
+
+Ce document est le guide officiel du département commercial de Quadria. Il explique les offres, les prix, les remises, le processus de vente, les objectifs et les commissions des commerciaux.
+
+Présentation du département commercial de Quadria
+Le département commercial de Quadria est dirigé par Antoine Fontaine, directeur commercial. Le département compte 40 personnes, réparties entre les commerciaux terrain, les commerciaux sédentaires, les ingénieurs avant vente et l'administration des ventes.
+
+Le département commercial de Quadria est organisé en trois régions. La région Sud Est est basée à Lyon. La région Île de France et Nord est basée à Paris. La région Ouest est basée à Nantes. La Belgique et la Suisse sont gérées depuis le bureau de Bruxelles.
+
+Clients de Quadria
+Les clients de Quadria sont des entreprises de 50 à 2000 salariés, principalement dans l'industrie, la distribution et la logistique. Quadria compte environ 1200 entreprises clientes.
+
+Offres de Quadria
+Quadria vend deux logiciels principaux. Quadria Stock est un logiciel de gestion des stocks et des entrepôts. Quadria Planning est un logiciel de planification des équipes et de la production. Les deux logiciels sont vendus sous forme d'abonnement dans le cloud.
+
+Prix des offres de Quadria
+L'offre Essentiel de Quadria Stock coûte 40 euros par utilisateur et par mois. L'offre Pro de Quadria Stock coûte 65 euros par utilisateur et par mois. L'offre Entreprise de Quadria Stock est sur devis.
+
+L'offre Essentiel de Quadria Planning coûte 30 euros par utilisateur et par mois. L'offre Pro de Quadria Planning coûte 50 euros par utilisateur et par mois.
+
+Chez Quadria, les frais de mise en service sont facturés une seule fois. Ils sont de 2000 euros pour l'offre Essentiel et de 5000 euros pour l'offre Pro.
+
+L'engagement minimum pour un abonnement Quadria est de 12 mois. Un client qui s'engage sur 36 mois obtient une remise de 10 pour cent sur l'abonnement.
+
+Remises commerciales chez Quadria
+Un commercial de Quadria peut accorder seul une remise jusqu'à 10 pour cent. Une remise entre 10 et 20 pour cent doit être validée par le responsable régional. Une remise de plus de 20 pour cent doit être validée par le directeur commercial.
+
+Processus de vente chez Quadria
+Le processus de vente chez Quadria comporte cinq étapes. La première étape est la qualification du prospect. La deuxième étape est la démonstration du logiciel. La troisième étape est l'envoi de la proposition commerciale. La quatrième étape est la négociation. La cinquième étape est la signature du contrat.
+
+Chez Quadria, chaque opportunité commerciale doit être enregistrée et mise à jour dans Salesforce. Une opportunité sans activité depuis 60 jours est considérée comme perdue.
+
+Le cycle de vente moyen chez Quadria est de trois mois pour une petite entreprise et de six mois pour une grande entreprise.
+
+Démonstrations chez Quadria
+Les démonstrations des logiciels de Quadria sont réalisées par les ingénieurs avant vente. Le commercial réserve une démonstration dans Salesforce au moins une semaine à l'avance.
+
+Contrats chez Quadria
+Les contrats clients de Quadria sont préparés par l'administration des ventes à partir du modèle de contrat officiel. Toute modification des conditions générales de vente doit être validée par le service juridique.
+
+Objectifs commerciaux de Quadria
+L'objectif commercial de Quadria pour 2026 est de signer 200 nouveaux clients et d'atteindre 54 millions d'euros de chiffre d'affaires. Chaque commercial terrain de Quadria a un objectif annuel de 600000 euros de nouvelles ventes.
+
+Les résultats commerciaux de Quadria sont présentés lors de la réunion commerciale du premier lundi de chaque mois.
+
+Rémunération des commerciaux de Quadria
+Les commerciaux de Quadria ont un salaire fixe et une part variable. La part variable représente jusqu'à 30 pour cent de la rémunération annuelle. Elle est calculée sur les ventes signées et payée chaque trimestre.
+
+Un commercial de Quadria qui dépasse son objectif annuel reçoit un bonus de 5 pour cent sur chaque vente au delà de l'objectif.
+
+Concours commercial de Quadria
+Chaque année, le meilleur commercial de Quadria gagne un voyage offert par l'entreprise. Le gagnant est annoncé lors du séminaire de janvier.
+
+Renouvellement des contrats chez Quadria
+Trois mois avant la fin d'un contrat, le commercial de Quadria contacte le client pour préparer le renouvellement. Le taux de renouvellement des clients de Quadria en 2025 était de 92 pour cent.

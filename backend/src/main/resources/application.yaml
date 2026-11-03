@@ -32,6 +32,15 @@ embedding:
   base-url: '${EMBEDDING_BASE_URL:http://local-llm:11434}'
   model: '${EMBEDDING_MODEL:nomic-embed-text}'
 
+# Swagger UI: /api/swagger-ui.html, OpenAPI JSON: /api/docs
+# Under /api so it is reachable through Traefik (port 80) and the frontend nginx.
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /api/swagger-ui.html
+    operations-sorter: method
+
 app:
   admin:
     email: ${ADMIN_EMAIL}

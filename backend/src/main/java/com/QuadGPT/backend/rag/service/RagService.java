@@ -25,6 +25,7 @@ public class RagService {
         this.llmClientService = llmClientService;
     }
 
+    // A null department searches the documents of every department.
     public String ask(String question, Department department) {
 
         float[] questionEmbedding = embeddingService.embed(question);
@@ -33,7 +34,7 @@ public class RagService {
                 chunkRepository.findSimilarChunks(
                         questionEmbedding,
                         3,
-                        department.name()
+                        department == null ? null : department.name()
                 );
 
         if (relevantChunks.isEmpty()) {

@@ -3,14 +3,20 @@ package com.QuadGPT.backend.rag.controller;
 import java.io.IOException;
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.department.Department;
 import com.QuadGPT.backend.rag.service.IngestionService;
 import com.QuadGPT.backend.rag.service.PdfExtractionService;
 import com.QuadGPT.backend.rag.service.RagService;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 @RestController
 @RequestMapping("/api/rag")
@@ -30,17 +36,18 @@ public class RagController {
         this.pdfExtractionService = pdfExtractionService;
     }
 
+    // At least one department, otherwise no USER could ever see the document.
     public record IngestRequest(
-            String name,
-            String text,
-            Set<Department> departments
+            @NotBlank String name,
+            @NotBlank String text,
+            @NotEmpty Set<Department> departments
     ) {}
 
     public record AskRequest(String question) {}
 
     @PostMapping("/ingest")
     @PreAuthorize("hasRole('ADMIN')")
-    public String ingest(@RequestBody IngestRequest request) {
+    public String ingest(@Valid @RequestBody IngestRequest request) {
 
         ingestionService.ingest(
                 request.name(),
@@ -55,9 +62,11 @@ public class RagController {
     @PreAuthorize("hasRole('ADMIN')")
     public String ingestFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "departments", required = false)
-            Set<Department> departments
+            @RequestParam("departments") Set<Department> departments
     ) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The file is empty");
+        }
 
         String text = pdfExtractionService.extractText(file);
 

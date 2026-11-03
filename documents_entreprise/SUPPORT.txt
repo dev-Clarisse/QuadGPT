@@ -1,0 +1,49 @@
+Guide du département support client de l'entreprise Quadria
+
+Ce document est le guide officiel du département support client de Quadria. Il explique les horaires, les canaux de contact, les niveaux de priorité, les délais de réponse et les procédures du support client.
+
+Présentation du support client de Quadria
+Le département support client de Quadria est dirigé par Léa Mercier, directrice du support client. Le département compte 25 conseillers répartis en deux niveaux. Le niveau 1 répond aux questions courantes des clients. Le niveau 2 traite les problèmes techniques complexes.
+
+Horaires du support client de Quadria
+Le support client de Quadria est ouvert du lundi au vendredi de 8 heures à 18 heures, sauf les jours fériés. Les clients qui ont souscrit l'offre Entreprise bénéficient d'un support disponible 24 heures sur 24 et 7 jours sur 7 pour les incidents critiques.
+
+Canaux de contact du support client de Quadria
+Les clients de Quadria peuvent contacter le support par téléphone, par le formulaire du portail client ou par le chat intégré dans les logiciels Quadria Stock et Quadria Planning. Chaque demande crée automatiquement un ticket dans l'outil Zendesk.
+
+Niveaux de priorité du support client de Quadria
+Chez Quadria, un ticket de priorité critique concerne un logiciel totalement inaccessible ou une perte de données. Un ticket de priorité haute concerne une fonction importante qui ne marche plus. Un ticket de priorité normale concerne un problème gênant mais avec une solution de contournement. Un ticket de priorité basse concerne une question ou une demande d'amélioration.
+
+Délais de réponse du support client de Quadria
+Le support client de Quadria répond à un ticket critique en moins de 30 minutes. Il répond à un ticket de priorité haute en moins de 2 heures. Il répond à un ticket de priorité normale en moins de 8 heures ouvrées. Il répond à un ticket de priorité basse en moins de 2 jours ouvrés.
+
+Le délai de résolution visé pour un ticket critique chez Quadria est de 4 heures.
+
+Traitement d'un ticket chez Quadria
+Lorsqu'un conseiller du support Quadria reçoit un ticket, il vérifie d'abord l'identité du client et son contrat. Il qualifie ensuite la priorité du ticket, puis cherche une solution dans la base de connaissances. Si le problème n'est pas résolu en 30 minutes, le ticket est transféré au niveau 2.
+
+Un ticket est fermé chez Quadria uniquement après la confirmation du client que le problème est résolu. Sans réponse du client pendant 7 jours, le ticket est fermé automatiquement.
+
+Escalade chez Quadria
+Si un problème vient d'un défaut du logiciel, le support niveau 2 de Quadria transmet le ticket à l'équipe de développement du département informatique. Pour un incident critique qui touche plusieurs clients, la directrice du support prévient le comité de direction.
+
+Base de connaissances de Quadria
+La base de connaissances de Quadria contient des articles d'aide pour les clients et les conseillers. Elle est accessible depuis le portail client. Chaque conseiller doit rédiger un article quand il résout un problème nouveau.
+
+Satisfaction client chez Quadria
+Après la fermeture de chaque ticket, le client de Quadria reçoit une enquête de satisfaction. L'objectif de satisfaction du support client de Quadria est de 90 pour cent de clients satisfaits. En 2025, le taux de satisfaction du support était de 93 pour cent.
+
+Réclamations chez Quadria
+Une réclamation d'un client de Quadria doit être enregistrée dans Zendesk avec le type réclamation. Toute réclamation reçoit une réponse écrite sous 5 jours ouvrés. Les réclamations graves sont transmises à la directrice du support client.
+
+Gestion des clients mécontents chez Quadria
+Face à un client mécontent, le conseiller de Quadria reste calme et poli, écoute le client sans l'interrompre, reformule le problème et propose une solution ou un délai précis. Le conseiller ne doit jamais promettre un geste commercial sans l'accord de son responsable.
+
+Gestes commerciaux chez Quadria
+Un responsable du support client de Quadria peut accorder un geste commercial jusqu'à un mois d'abonnement gratuit en cas d'incident grave. Au delà, l'accord du directeur commercial est nécessaire.
+
+Formation des nouveaux clients de Quadria
+Chaque nouveau client de Quadria bénéficie de deux sessions de formation en ligne de deux heures sur son logiciel. Des formations supplémentaires peuvent être achetées au prix de 800 euros la journée.
+
+Maintenance des logiciels de Quadria
+Les opérations de maintenance des logiciels de Quadria ont lieu le premier dimanche de chaque mois entre 2 heures et 6 heures du matin. Les clients sont prévenus par courriel une semaine à l'avance.

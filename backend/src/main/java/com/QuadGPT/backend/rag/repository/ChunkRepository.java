@@ -29,11 +29,26 @@ public class ChunkRepository {
         );
     }
 
+    // A null department searches every document (ADMIN).
     public List<String> findSimilarChunks(
             float[] queryEmbedding,
             int limit,
             String department
     ) {
+        if (department == null) {
+            return jdbcTemplate.query(
+                    """
+                    SELECT content
+                    FROM document_chunk
+                    ORDER BY embedding <=> ?
+                    LIMIT ?
+                    """,
+                    (rs, rowNum) -> rs.getString("content"),
+                    new PGvector(queryEmbedding),
+                    limit
+            );
+        }
+
         return jdbcTemplate.query(
                 """
                 SELECT dc.content

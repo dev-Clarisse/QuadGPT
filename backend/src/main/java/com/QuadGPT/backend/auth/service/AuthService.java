@@ -10,7 +10,6 @@ import com.QuadGPT.backend.auth.exception.EmailAlreadyRegisteredException;
 import com.QuadGPT.backend.auth.exception.InvalidCredentialsException;
 
 import org.springframework.stereotype.Service;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +31,7 @@ public class AuthService {
     @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already in use: " + request.email());
+            throw new EmailAlreadyRegisteredException();
         }
         User user = new User(
                 request.email(),
@@ -46,10 +45,10 @@ public class AuthService {
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+                .orElseThrow(InvalidCredentialsException::new);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid credentials");
+            throw new InvalidCredentialsException();
         }
 
         String token = jwtService.generateToken(user);
