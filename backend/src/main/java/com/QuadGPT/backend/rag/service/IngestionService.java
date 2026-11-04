@@ -16,7 +16,7 @@ import com.QuadGPT.backend.department.Department;
 import com.QuadGPT.backend.rag.Document;
 import com.QuadGPT.backend.rag.DocumentFile;
 import com.QuadGPT.backend.rag.TextChunker;
-import com.QuadGPT.backend.rag.exception.DuplicateDocumentException;
+import com.QuadGPT.backend.exception.DuplicateDocumentException;
 import com.QuadGPT.backend.rag.repository.ChunkRepository;
 import com.QuadGPT.backend.rag.repository.DocumentFileRepository;
 import com.QuadGPT.backend.rag.repository.DocumentRepository;

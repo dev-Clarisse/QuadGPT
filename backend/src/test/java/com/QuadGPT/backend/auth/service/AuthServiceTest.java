@@ -21,8 +21,8 @@ import com.QuadGPT.backend.User.repository.UserRepository;
 import com.QuadGPT.backend.auth.dto.LoginRequest;
 import com.QuadGPT.backend.auth.dto.LoginResponse;
 import com.QuadGPT.backend.auth.dto.RegisterRequest;
-import com.QuadGPT.backend.auth.exception.EmailAlreadyRegisteredException;
-import com.QuadGPT.backend.auth.exception.InvalidCredentialsException;
+import com.QuadGPT.backend.exception.EmailAlreadyRegisteredException;
+import com.QuadGPT.backend.exception.InvalidCredentialsException;
 import com.QuadGPT.backend.department.Department;
 
 class AuthServiceTest {

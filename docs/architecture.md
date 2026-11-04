@@ -143,8 +143,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    push(["push / pull request on main"]) --> back["Backend tests<br/>unit, then integration<br/>(Testcontainers pgvector)"]
-    push --> front["Frontend<br/>lint · Vitest · build"]
+    push(["push / pull request on main"]) --> back["Backend tests<br/>unit, then integration<br/>(Testcontainers pgvector)<br/>JaCoCo coverage"]
+    push --> front["Frontend<br/>lint · Vitest + coverage · build"]
+    back --> sonar["SonarCloud<br/>quality gate, coverage"]
+    front --> sonar
     back --> docker["Docker images<br/>built every time<br/>pushed to GHCR on main"]
     front --> docker
     docker --> deploy["Deploy over SSH<br/>only if DEPLOY_ENABLED = true"]

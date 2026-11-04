@@ -39,8 +39,18 @@ jobs:
       - name: Tests unitaires
         run: ./mvnw -B test
 
-      - name: Tests d'intégration
-        run: ./mvnw -B failsafe:integration-test failsafe:verify
+      # JaCoCo appends the integration tests to the coverage of the unit tests.
+      - name: Tests d'intégration et couverture JaCoCo
+        run: ./mvnw -B jacoco:prepare-agent failsafe:integration-test failsafe:verify jacoco:report
+
+      - name: Couverture et classes compilées pour SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: |
+            backend/target/site/jacoco
+            backend/target/classes
+            backend/target/test-classes
 
       - name: Rapports de tests
         if: failure()
@@ -78,11 +88,56 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Tests
-        run: npm test
+      - name: Tests et couverture
+        run: npm run test:coverage
+
+      - name: Couverture pour SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/lcov.info
 
       - name: Build
         run: npm run build
+
+  # =========================================================
+  # SonarCloud: code quality, security issues and coverage.
+  # Needs the SONAR_TOKEN secret; skipped when it is not set
+  # (for example on pull requests from forks).
+  # =========================================================
+  sonarcloud:
+    name: SonarCloud
+    needs: [ backend, frontend ]
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+        with:
+          # Full history so SonarCloud can tell new code from old code.
+          fetch-depth: 0
+
+      - name: Récupérer la couverture backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/target
+
+      - name: Récupérer la couverture frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+
+      # Vitest writes paths relative to frontend/, SonarCloud expects them relative to the repository.
+      - name: Chemins de la couverture frontend
+        run: sed -i 's#^SF:#SF:frontend/#' frontend/coverage/lcov.info
+
+      - name: Analyse SonarCloud
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
 
   # =========================================================
   # Docker images: always built to prove they still build.

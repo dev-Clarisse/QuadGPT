@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.User.entity.Role;
 import com.QuadGPT.backend.User.entity.User;
@@ -28,6 +27,7 @@ import com.QuadGPT.backend.chat.entity.Conversation;
 import com.QuadGPT.backend.chat.repository.ChatMessageRepository;
 import com.QuadGPT.backend.chat.repository.ConversationRepository;
 import com.QuadGPT.backend.department.Department;
+import com.QuadGPT.backend.exception.ResourceNotFoundException;
 import com.QuadGPT.backend.rag.service.RagService;
 
 class ChatServiceTest {
@@ -104,8 +104,8 @@ class ChatServiceTest {
         when(conversationRepository.findByIdAndUserId(99L, user.getId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> chatService.processMessage("question", 99L))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Conversation not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conversation not found");
         verify(ragService, never()).ask(anyString(), any());
     }
 

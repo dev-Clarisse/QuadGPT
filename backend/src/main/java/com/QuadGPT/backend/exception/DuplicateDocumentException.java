@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.rag.exception;
+package com.QuadGPT.backend.exception;
 
 public class DuplicateDocumentException extends RuntimeException {
 

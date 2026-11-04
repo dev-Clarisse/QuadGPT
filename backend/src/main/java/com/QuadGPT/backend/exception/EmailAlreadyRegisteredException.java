@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.auth.exception;
+package com.QuadGPT.backend.exception;
 
 public class EmailAlreadyRegisteredException extends RuntimeException {
 

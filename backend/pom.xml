@@ -144,6 +144,28 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- Code coverage: the agent records unit and integration tests in the same
+			     target/jacoco.exec, and `mvn verify` writes target/site/jacoco (HTML + XML for SonarCloud). -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.14</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- Unit tests (*Test) run with `mvn test`; integration tests (*IT) need Docker
 			     for Testcontainers and run with `mvn verify`. -->
 			<plugin>

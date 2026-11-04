@@ -3,14 +3,15 @@ package com.QuadGPT.backend.rag.service;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.User.entity.Role;
 import com.QuadGPT.backend.User.entity.User;
 import com.QuadGPT.backend.User.repository.UserRepository;
+import com.QuadGPT.backend.exception.DocumentAccessDeniedException;
+import com.QuadGPT.backend.exception.ResourceNotFoundException;
+import com.QuadGPT.backend.exception.UnknownUserException;
 import com.QuadGPT.backend.rag.Document;
 import com.QuadGPT.backend.rag.DocumentFile;
 import com.QuadGPT.backend.rag.dto.DocumentResponse;
@@ -63,17 +64,16 @@ public class DocumentService {
         User user = findUser(email);
 
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Document"));
 
         boolean allowed = user.getRole() == Role.ADMIN
                 || document.getDepartments().contains(user.getDepartment());
         if (!allowed) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access this document");
+            throw new DocumentAccessDeniedException();
         }
 
         DocumentFile file = documentFileRepository.findById(documentId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "The original file is not available for this document"));
+                .orElseThrow(() -> new ResourceNotFoundException("Original file"));
 
         return new DownloadableFile(document.getName(), file.getContentType(), file.getData());
     }
@@ -83,12 +83,12 @@ public class DocumentService {
     @Transactional
     public void deleteDocument(Long documentId) {
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Document"));
         documentRepository.delete(document);
     }
 
     private User findUser(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown user"));
+                .orElseThrow(UnknownUserException::new);
     }
 }

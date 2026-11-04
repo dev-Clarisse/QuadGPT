@@ -95,6 +95,28 @@ The initialization script:
 
 ---
 
+## Demo users
+
+With docker-compose, Flyway also loads [db/seed/R__seed_users.sql](backend/src/main/resources/db/seed/R__seed_users.sql):
+one `USER` account per department, all with the password `Quadria2026`.
+The admin is not part of the seed: it still comes from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+
+| Email | Department |
+|---|---|
+| claire.martin@quadria.fr | RH |
+| thomas.lefevre@quadria.fr | RH |
+| julien.moreau@quadria.fr | FINANCE |
+| nicolas.dubois@quadria.fr | IT |
+| camille.laurent@quadria.fr | MARKETING |
+| pierre.durand@quadria.fr | DIRECTION |
+| antoine.fontaine@quadria.fr | SALES |
+| lea.mercier@quadria.fr | SUPPORT |
+
+Existing accounts with the same email are never modified. To skip these demo users
+(production), set `FLYWAY_LOCATIONS=classpath:db/migration` in `.env`.
+
+---
+
 ## Main commands
 
 ### First-time initialization

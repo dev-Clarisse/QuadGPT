@@ -1,4 +1,4 @@
-package com.QuadGPT.backend.auth.exception;
+package com.QuadGPT.backend.exception;
 
 import java.util.stream.Collectors;
 
@@ -16,13 +16,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.server.ResponseStatusException;
-
-import com.QuadGPT.backend.rag.exception.DuplicateDocumentException;
 
 /**
  * Turns exceptions into an HTTP status with a plain-text message, which the frontend
- * displays as is. Security errors (401/403) are not handled here: Spring Security
+ * displays as is. Services only throw the exceptions of this package and never deal
+ * with HTTP: the status of each one is decided here. Security errors (401/403) are not handled here: Spring Security
  * answers them before or after the controllers.
  */
 @RestControllerAdvice
@@ -30,11 +28,34 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatus(ResponseStatusException exception) {
+    // ===== Application exceptions =====
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(ResourceNotFoundException exception) {
         return ResponseEntity
-                .status(exception.getStatusCode())
-                .body(exception.getReason());
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(DocumentAccessDeniedException.class)
+    public ResponseEntity<String> handleDocumentAccessDenied(DocumentAccessDeniedException exception) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<String> handleInvalidFile(InvalidFileException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(UnknownUserException.class)
+    public ResponseEntity<String> handleUnknownUser(UnknownUserException exception) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(exception.getMessage());
     }
 
     @ExceptionHandler(DuplicateDocumentException.class)
@@ -63,6 +84,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(exception.getMessage());
     }
+
+    // ===== Framework exceptions =====
 
     // Last line of defence against concurrent inserts (same email, same file hash).
     @ExceptionHandler(DataIntegrityViolationException.class)

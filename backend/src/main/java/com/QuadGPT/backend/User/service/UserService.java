@@ -2,17 +2,16 @@ package com.QuadGPT.backend.User.service;
 
 
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;   // ⚠️ pas jakarta
-import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.User.dto.CreateUserRequest;
 import com.QuadGPT.backend.User.dto.UserResponse;
 import com.QuadGPT.backend.User.entity.User;
 import com.QuadGPT.backend.User.repository.UserRepository;
-import com.QuadGPT.backend.auth.exception.EmailAlreadyRegisteredException;
+import com.QuadGPT.backend.exception.EmailAlreadyRegisteredException;
+import com.QuadGPT.backend.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -50,13 +49,13 @@ public class UserService {                                          // ⚠️ Us
     public UserResponse findById(Long id) {
         return userRepository.findById(id)
                 .map(UserResponse::from)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User"));
     }
 
     @Transactional
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new ResourceNotFoundException("User");
         }
         userRepository.deleteById(id);
     }

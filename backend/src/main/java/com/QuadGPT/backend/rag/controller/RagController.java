@@ -3,13 +3,12 @@ package com.QuadGPT.backend.rag.controller;
 import java.io.IOException;
 import java.util.Set;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.department.Department;
+import com.QuadGPT.backend.exception.InvalidFileException;
 import com.QuadGPT.backend.rag.service.IngestionService;
 import com.QuadGPT.backend.rag.service.PdfExtractionService;
 import com.QuadGPT.backend.rag.service.RagService;
@@ -65,7 +64,7 @@ public class RagController {
             @RequestParam("departments") Set<Department> departments
     ) {
         if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The file is empty");
+            throw new InvalidFileException("The file is empty");
         }
 
         String text = pdfExtractionService.extractText(file);

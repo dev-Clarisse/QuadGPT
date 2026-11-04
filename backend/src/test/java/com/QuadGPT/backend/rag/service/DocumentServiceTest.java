@@ -12,14 +12,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.QuadGPT.backend.User.entity.Role;
 import com.QuadGPT.backend.User.entity.User;
 import com.QuadGPT.backend.User.repository.UserRepository;
 import com.QuadGPT.backend.department.Department;
+import com.QuadGPT.backend.exception.DocumentAccessDeniedException;
+import com.QuadGPT.backend.exception.ResourceNotFoundException;
 import com.QuadGPT.backend.rag.Document;
 import com.QuadGPT.backend.rag.DocumentFile;
 import com.QuadGPT.backend.rag.repository.DocumentFileRepository;
@@ -84,8 +84,7 @@ class DocumentServiceTest {
         givenUser("it@quadria.fr", Department.IT, Role.USER);
 
         assertThatThrownBy(() -> documentService.getFile(1L, "it@quadria.fr"))
-                .isInstanceOfSatisfying(ResponseStatusException.class,
-                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
+                .isInstanceOf(DocumentAccessDeniedException.class);
     }
 
     @Test
@@ -100,8 +99,8 @@ class DocumentServiceTest {
         when(documentRepository.findById(42L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> documentService.deleteDocument(42L))
-                .isInstanceOfSatisfying(ResponseStatusException.class,
-                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Document not found");
     }
 
     private void givenUser(String email, Department department, Role role) {

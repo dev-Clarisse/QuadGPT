@@ -12,13 +12,13 @@ import com.QuadGPT.backend.chat.entity.ChatMessage;
 import com.QuadGPT.backend.chat.entity.Conversation;
 import com.QuadGPT.backend.chat.repository.ChatMessageRepository;
 import com.QuadGPT.backend.chat.repository.ConversationRepository;
+import com.QuadGPT.backend.exception.ResourceNotFoundException;
+import com.QuadGPT.backend.exception.UnknownUserException;
 import com.QuadGPT.backend.rag.service.RagService;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ChatService {
@@ -103,7 +103,7 @@ public class ChatService {
     private Conversation findOwnedConversation(Long conversationId, User user) {
         // 404 rather than 403 so other users' conversation ids are not revealed.
         return conversationRepository.findByIdAndUserId(conversationId, user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation"));
     }
 
     private String buildTitle(String message) {
@@ -120,6 +120,6 @@ public class ChatService {
 
         return userRepository.findByEmail(email)
                 // The token is still valid but the account was deleted in the meantime.
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown user"));
+                .orElseThrow(UnknownUserException::new);
     }
 }
